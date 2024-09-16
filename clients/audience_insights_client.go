@@ -1,4 +1,4 @@
-// Copyright 2023 Google LLC
+// Copyright 2024 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,15 +42,19 @@ type AudienceInsightsCallOptions struct {
 	ListInsightsEligibleDates []gax.CallOption
 	GenerateAudienceCompositionInsights []gax.CallOption
 	GenerateSuggestedTargetingInsights []gax.CallOption
+	GenerateAudienceOverlapInsights []gax.CallOption
 }
 
 func defaultAudienceInsightsGRPCClientOptions() []option.ClientOption {
 	return []option.ClientOption{
 		internaloption.WithDefaultEndpoint("googleads.googleapis.com:443"),
+		internaloption.WithDefaultEndpointTemplate("googleads.UNIVERSE_DOMAIN:443"),
 		internaloption.WithDefaultMTLSEndpoint("googleads.mtls.googleapis.com:443"),
+		internaloption.WithDefaultUniverseDomain("googleapis.com"),
 		internaloption.WithDefaultAudience("https://googleads.googleapis.com/"),
 		internaloption.WithDefaultScopes(DefaultAuthScopes()...),
 		internaloption.EnableJwtWithScope(),
+		internaloption.EnableNewAuthLibrary(),
 		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(
 		grpc.MaxCallRecvMsgSize(math.MaxInt32))),
 	}
@@ -123,6 +127,19 @@ func defaultAudienceInsightsCallOptions() *AudienceInsightsCallOptions {
 				})
 			}),
 		},
+		GenerateAudienceOverlapInsights: []gax.CallOption{
+			gax.WithTimeout(14400000 * time.Millisecond),
+			gax.WithRetry(func() gax.Retryer {
+				return gax.OnCodes([]codes.Code{
+					codes.Unavailable,
+					codes.DeadlineExceeded,
+				}, gax.Backoff{
+					Initial:    5000 * time.Millisecond,
+					Max:        60000 * time.Millisecond,
+					Multiplier: 1.30,
+				})
+			}),
+		},
 	}
 }
 
@@ -136,6 +153,7 @@ type internalAudienceInsightsClient interface {
 	ListInsightsEligibleDates(context.Context, *servicespb.ListInsightsEligibleDatesRequest, ...gax.CallOption) (*servicespb.ListInsightsEligibleDatesResponse, error)
 	GenerateAudienceCompositionInsights(context.Context, *servicespb.GenerateAudienceCompositionInsightsRequest, ...gax.CallOption) (*servicespb.GenerateAudienceCompositionInsightsResponse, error)
 	GenerateSuggestedTargetingInsights(context.Context, *servicespb.GenerateSuggestedTargetingInsightsRequest, ...gax.CallOption) (*servicespb.GenerateSuggestedTargetingInsightsResponse, error)
+	GenerateAudienceOverlapInsights(context.Context, *servicespb.GenerateAudienceOverlapInsightsRequest, ...gax.CallOption) (*servicespb.GenerateAudienceOverlapInsightsResponse, error)
 }
 
 // AudienceInsightsClient is a client for interacting with Google Ads API.
@@ -256,6 +274,24 @@ func (c *AudienceInsightsClient) GenerateSuggestedTargetingInsights(ctx context.
 	return c.internalClient.GenerateSuggestedTargetingInsights(ctx, req, opts...)
 }
 
+// GenerateAudienceOverlapInsights returns a collection of audience attributes along with estimates of the
+// overlap between their potential YouTube reach and that of a given input
+// attribute.
+//
+// List of thrown errors:
+// AudienceInsightsError (at )
+// AuthenticationError (at )
+// AuthorizationError (at )
+// FieldError (at )
+// HeaderError (at )
+// InternalError (at )
+// QuotaError (at )
+// RangeError (at )
+// RequestError (at )
+func (c *AudienceInsightsClient) GenerateAudienceOverlapInsights(ctx context.Context, req *servicespb.GenerateAudienceOverlapInsightsRequest, opts ...gax.CallOption) (*servicespb.GenerateAudienceOverlapInsightsResponse, error) {
+	return c.internalClient.GenerateAudienceOverlapInsights(ctx, req, opts...)
+}
+
 // audienceInsightsGRPCClient is a client for interacting with Google Ads API over gRPC transport.
 //
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
@@ -322,7 +358,9 @@ func (c *audienceInsightsGRPCClient) Connection() *grpc.ClientConn {
 func (c *audienceInsightsGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
 	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
-	c.xGoogHeaders = []string{"x-goog-api-client", gax.XGoogHeader(kv...)}
+	c.xGoogHeaders = []string{
+		"x-goog-api-client", gax.XGoogHeader(kv...),
+	}
 }
 
 // Close closes the connection to the API service. The user should invoke this when
@@ -410,6 +448,24 @@ func (c *audienceInsightsGRPCClient) GenerateSuggestedTargetingInsights(ctx cont
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
 		resp, err = c.audienceInsightsClient.GenerateSuggestedTargetingInsights(ctx, req, settings.GRPC...)
+		return err
+	}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *audienceInsightsGRPCClient) GenerateAudienceOverlapInsights(ctx context.Context, req *servicespb.GenerateAudienceOverlapInsightsRequest, opts ...gax.CallOption) (*servicespb.GenerateAudienceOverlapInsightsResponse, error) {
+	hds := []string{"x-goog-request-params", fmt.Sprintf("%s=%v", "customer_id", url.QueryEscape(req.GetCustomerId()))}
+
+	hds = append(c.xGoogHeaders, hds...)
+	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)
+	opts = append((*c.CallOptions).GenerateAudienceOverlapInsights[0:len((*c.CallOptions).GenerateAudienceOverlapInsights):len((*c.CallOptions).GenerateAudienceOverlapInsights)], opts...)
+	var resp *servicespb.GenerateAudienceOverlapInsightsResponse
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		resp, err = c.audienceInsightsClient.GenerateAudienceOverlapInsights(ctx, req, settings.GRPC...)
 		return err
 	}, opts...)
 	if err != nil {
