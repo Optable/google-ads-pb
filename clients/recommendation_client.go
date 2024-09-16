@@ -1,4 +1,4 @@
-// Copyright 2023 Google LLC
+// Copyright 2024 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,15 +39,19 @@ var newRecommendationClientHook clientHook
 type RecommendationCallOptions struct {
 	ApplyRecommendation []gax.CallOption
 	DismissRecommendation []gax.CallOption
+	GenerateRecommendations []gax.CallOption
 }
 
 func defaultRecommendationGRPCClientOptions() []option.ClientOption {
 	return []option.ClientOption{
 		internaloption.WithDefaultEndpoint("googleads.googleapis.com:443"),
+		internaloption.WithDefaultEndpointTemplate("googleads.UNIVERSE_DOMAIN:443"),
 		internaloption.WithDefaultMTLSEndpoint("googleads.mtls.googleapis.com:443"),
+		internaloption.WithDefaultUniverseDomain("googleapis.com"),
 		internaloption.WithDefaultAudience("https://googleads.googleapis.com/"),
 		internaloption.WithDefaultScopes(DefaultAuthScopes()...),
 		internaloption.EnableJwtWithScope(),
+		internaloption.EnableNewAuthLibrary(),
 		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(
 		grpc.MaxCallRecvMsgSize(math.MaxInt32))),
 	}
@@ -81,6 +85,19 @@ func defaultRecommendationCallOptions() *RecommendationCallOptions {
 				})
 			}),
 		},
+		GenerateRecommendations: []gax.CallOption{
+			gax.WithTimeout(14400000 * time.Millisecond),
+			gax.WithRetry(func() gax.Retryer {
+				return gax.OnCodes([]codes.Code{
+					codes.Unavailable,
+					codes.DeadlineExceeded,
+				}, gax.Backoff{
+					Initial:    5000 * time.Millisecond,
+					Max:        60000 * time.Millisecond,
+					Multiplier: 1.30,
+				})
+			}),
+		},
 	}
 }
 
@@ -91,6 +108,7 @@ type internalRecommendationClient interface {
 	Connection() *grpc.ClientConn
 	ApplyRecommendation(context.Context, *servicespb.ApplyRecommendationRequest, ...gax.CallOption) (*servicespb.ApplyRecommendationResponse, error)
 	DismissRecommendation(context.Context, *servicespb.DismissRecommendationRequest, ...gax.CallOption) (*servicespb.DismissRecommendationResponse, error)
+	GenerateRecommendations(context.Context, *servicespb.GenerateRecommendationsRequest, ...gax.CallOption) (*servicespb.GenerateRecommendationsResponse, error)
 }
 
 // RecommendationClient is a client for interacting with Google Ads API.
@@ -161,6 +179,20 @@ func (c *RecommendationClient) DismissRecommendation(ctx context.Context, req *s
 	return c.internalClient.DismissRecommendation(ctx, req, opts...)
 }
 
+// GenerateRecommendations generates Recommendations based off the requested recommendation_types.
+//
+// List of thrown errors:
+// AuthenticationError (at )
+// AuthorizationError (at )
+// HeaderError (at )
+// InternalError (at )
+// QuotaError (at )
+// RecommendationError (at )
+// RequestError (at )
+func (c *RecommendationClient) GenerateRecommendations(ctx context.Context, req *servicespb.GenerateRecommendationsRequest, opts ...gax.CallOption) (*servicespb.GenerateRecommendationsResponse, error) {
+	return c.internalClient.GenerateRecommendations(ctx, req, opts...)
+}
+
 // recommendationGRPCClient is a client for interacting with Google Ads API over gRPC transport.
 //
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
@@ -225,7 +257,9 @@ func (c *recommendationGRPCClient) Connection() *grpc.ClientConn {
 func (c *recommendationGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
 	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
-	c.xGoogHeaders = []string{"x-goog-api-client", gax.XGoogHeader(kv...)}
+	c.xGoogHeaders = []string{
+		"x-goog-api-client", gax.XGoogHeader(kv...),
+	}
 }
 
 // Close closes the connection to the API service. The user should invoke this when
@@ -262,6 +296,24 @@ func (c *recommendationGRPCClient) DismissRecommendation(ctx context.Context, re
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
 		resp, err = c.recommendationClient.DismissRecommendation(ctx, req, settings.GRPC...)
+		return err
+	}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *recommendationGRPCClient) GenerateRecommendations(ctx context.Context, req *servicespb.GenerateRecommendationsRequest, opts ...gax.CallOption) (*servicespb.GenerateRecommendationsResponse, error) {
+	hds := []string{"x-goog-request-params", fmt.Sprintf("%s=%v", "customer_id", url.QueryEscape(req.GetCustomerId()))}
+
+	hds = append(c.xGoogHeaders, hds...)
+	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)
+	opts = append((*c.CallOptions).GenerateRecommendations[0:len((*c.CallOptions).GenerateRecommendations):len((*c.CallOptions).GenerateRecommendations)], opts...)
+	var resp *servicespb.GenerateRecommendationsResponse
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		resp, err = c.recommendationClient.GenerateRecommendations(ctx, req, settings.GRPC...)
 		return err
 	}, opts...)
 	if err != nil {

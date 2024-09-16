@@ -19,17 +19,15 @@ Although this project isn't official, we deem it as low-risk due to its maturity
 
 ## Version support
 
-
-
-| google-ads-pb     | Google Ads API   | Sunset date                  |
-| ----------------- | ---------------- | ---------------------------- |
-| Not generated yet   | v18              | End of September 2025      |
-| Not generated yet   | v17.1            | End of May 2025            |
-| Not generated yet   | v17              | End of May 2025            |
-| Not generated yet   | v16.1            | End of January 2025        |
-| Not generated yet   | v16              | End of January 2025        |
-| v1.1.0              | v15              | End of September 2024      |
-| v1.0.1              | v14              | End of May 2024            |
+| google-ads-pb         | Google Ads API | Sunset date           |
+| -----------------     | -------------- | --------------------- |
+| Not generated yet     | v18            | End of September 2025 |
+| Not generated yet     | v17.1          | End of May 2025       |
+| v1.2.0                | v17            | End of May 2025       |
+| Skipped               | v16.1          | End of January 2025   |
+| Skipped               | v16            | End of January 2025   |
+| ~~v1.1.0~~ DEPRECATED | v15            | End of September 2024 |
+| ~~v1.0.1~~ DEPRECATED | v14            | End of May 2024       |
 
 ## Requirements
 
@@ -133,28 +131,15 @@ See [clients/internal/snippets](https://github.com/Optable/google-ads-pb/tree/ma
 ## Note for the updating process
 
 1. Find the version number in [this folder](https://github.com/googleapis/googleapis/tree/master/google/ads/googleads).
-2. Checkout the branch with the version number. Example: For v14, checkout the branch `v14`.
-3. Execute the following command.
-
-```bash
-make generate
-```
-4. It will prompt you to enter the version number. Enter the version number you found in step 1. Example: For v14, enter 14.
+2. Run `git checkout -b bump-to-v15` (change the version accordingly).
+3. Run `make generate` to generate the code.
+4. It will prompt you to enter the version number. Enter the version number you found in step 1, without the v. Example: For `v15`, enter `15`.
 5. Once the process is done, it should have modified some files in `/clients` and `/protogen`
-6. Modify this file to add the version number to the table with the next tag. Please also update the table with the infos here: https://developers.google.com/google-ads/api/docs/sunset-dates
-7. Create a PR with the changes, merge it and create a new tag with the version number added in step 6.
-```bash
-git tag v1.0.0
-```
-8. Push the tag
-```bash
-git push origin v1.0.0
-```
-9. Create a new release on Github with the tag created in step 7.
-10. Publish the realease on Golang
-```bash
-GOPROXY=proxy.golang.org go list -m github.com/Optable/google-ads-pb@v1.0.0
-```
+6. Modify this readme.md to add the version number to the table with the next tag (ref: https://developers.google.com/google-ads/api/docs/sunset-dates)
+7. Create a PR with the changes against https://github.com/Optable/google-ads-pb/tree/main.
+8. Create a tag with the PR merged in step 7. `git tag -a v1.1.0 -m "update to v15"`
+9. Mark the pushed tag as `Latest release` in GitHub: https://github.com/Optable/google-ads-pb/releases/edit/v1.1.0
+10. Publish the release on Golang `GOPROXY=proxy.golang.org go list -m github.com/Optable/google-ads-pb@v1.1.0`
 
 ## Related
 

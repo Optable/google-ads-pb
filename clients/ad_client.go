@@ -1,4 +1,4 @@
-// Copyright 2023 Google LLC
+// Copyright 2024 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import (
 	"google.golang.org/api/option"
 	"google.golang.org/api/option/internaloption"
 	gtransport "google.golang.org/api/transport/grpc"
-	resourcespb "github.com/Optable/google-ads-pb/protogen/resources"
 	servicespb "github.com/Optable/google-ads-pb/protogen/services"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -38,17 +37,19 @@ var newAdClientHook clientHook
 
 // AdCallOptions contains the retry settings for each method of AdClient.
 type AdCallOptions struct {
-	GetAd []gax.CallOption
 	MutateAds []gax.CallOption
 }
 
 func defaultAdGRPCClientOptions() []option.ClientOption {
 	return []option.ClientOption{
 		internaloption.WithDefaultEndpoint("googleads.googleapis.com:443"),
+		internaloption.WithDefaultEndpointTemplate("googleads.UNIVERSE_DOMAIN:443"),
 		internaloption.WithDefaultMTLSEndpoint("googleads.mtls.googleapis.com:443"),
+		internaloption.WithDefaultUniverseDomain("googleapis.com"),
 		internaloption.WithDefaultAudience("https://googleads.googleapis.com/"),
 		internaloption.WithDefaultScopes(DefaultAuthScopes()...),
 		internaloption.EnableJwtWithScope(),
+		internaloption.EnableNewAuthLibrary(),
 		option.WithGRPCDialOption(grpc.WithDefaultCallOptions(
 		grpc.MaxCallRecvMsgSize(math.MaxInt32))),
 	}
@@ -56,19 +57,6 @@ func defaultAdGRPCClientOptions() []option.ClientOption {
 
 func defaultAdCallOptions() *AdCallOptions {
 	return &AdCallOptions{
-		GetAd: []gax.CallOption{
-			gax.WithTimeout(14400000 * time.Millisecond),
-			gax.WithRetry(func() gax.Retryer {
-				return gax.OnCodes([]codes.Code{
-					codes.Unavailable,
-					codes.DeadlineExceeded,
-				}, gax.Backoff{
-					Initial:    5000 * time.Millisecond,
-					Max:        60000 * time.Millisecond,
-					Multiplier: 1.30,
-				})
-			}),
-		},
 		MutateAds: []gax.CallOption{
 			gax.WithTimeout(14400000 * time.Millisecond),
 			gax.WithRetry(func() gax.Retryer {
@@ -90,7 +78,6 @@ type internalAdClient interface {
 	Close() error
 	setGoogleClientInfo(...string)
 	Connection() *grpc.ClientConn
-	GetAd(context.Context, *servicespb.GetAdRequest, ...gax.CallOption) (*resourcespb.Ad, error)
 	MutateAds(context.Context, *servicespb.MutateAdsRequest, ...gax.CallOption) (*servicespb.MutateAdsResponse, error)
 }
 
@@ -128,19 +115,6 @@ func (c *AdClient) setGoogleClientInfo(keyval ...string) {
 // return the same resource.
 func (c *AdClient) Connection() *grpc.ClientConn {
 	return c.internalClient.Connection()
-}
-
-// GetAd returns the requested ad in full detail.
-//
-// List of thrown errors:
-// AuthenticationError (at )
-// AuthorizationError (at )
-// HeaderError (at )
-// InternalError (at )
-// QuotaError (at )
-// RequestError (at )
-func (c *AdClient) GetAd(ctx context.Context, req *servicespb.GetAdRequest, opts ...gax.CallOption) (*resourcespb.Ad, error) {
-	return c.internalClient.GetAd(ctx, req, opts...)
 }
 
 // MutateAds updates ads. Operation statuses are returned. Updating ads is not supported
@@ -253,31 +227,15 @@ func (c *adGRPCClient) Connection() *grpc.ClientConn {
 func (c *adGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
 	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
-	c.xGoogHeaders = []string{"x-goog-api-client", gax.XGoogHeader(kv...)}
+	c.xGoogHeaders = []string{
+		"x-goog-api-client", gax.XGoogHeader(kv...),
+	}
 }
 
 // Close closes the connection to the API service. The user should invoke this when
 // the client is no longer required.
 func (c *adGRPCClient) Close() error {
 	return c.connPool.Close()
-}
-
-func (c *adGRPCClient) GetAd(ctx context.Context, req *servicespb.GetAdRequest, opts ...gax.CallOption) (*resourcespb.Ad, error) {
-	hds := []string{"x-goog-request-params", fmt.Sprintf("%s=%v", "resource_name", url.QueryEscape(req.GetResourceName()))}
-
-	hds = append(c.xGoogHeaders, hds...)
-	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)
-	opts = append((*c.CallOptions).GetAd[0:len((*c.CallOptions).GetAd):len((*c.CallOptions).GetAd)], opts...)
-	var resp *resourcespb.Ad
-	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
-		var err error
-		resp, err = c.adClient.GetAd(ctx, req, settings.GRPC...)
-		return err
-	}, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return resp, nil
 }
 
 func (c *adGRPCClient) MutateAds(ctx context.Context, req *servicespb.MutateAdsRequest, opts ...gax.CallOption) (*servicespb.MutateAdsResponse, error) {
