@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -38,6 +39,7 @@ var newLocalServicesLeadClientHook clientHook
 // LocalServicesLeadCallOptions contains the retry settings for each method of LocalServicesLeadClient.
 type LocalServicesLeadCallOptions struct {
 	AppendLeadConversation []gax.CallOption
+	ProvideLeadFeedback []gax.CallOption
 }
 
 func defaultLocalServicesLeadGRPCClientOptions() []option.ClientOption {
@@ -70,6 +72,19 @@ func defaultLocalServicesLeadCallOptions() *LocalServicesLeadCallOptions {
 				})
 			}),
 		},
+		ProvideLeadFeedback: []gax.CallOption{
+			gax.WithTimeout(14400000 * time.Millisecond),
+			gax.WithRetry(func() gax.Retryer {
+				return gax.OnCodes([]codes.Code{
+					codes.Unavailable,
+					codes.DeadlineExceeded,
+				}, gax.Backoff{
+					Initial:    5000 * time.Millisecond,
+					Max:        60000 * time.Millisecond,
+					Multiplier: 1.30,
+				})
+			}),
+		},
 	}
 }
 
@@ -79,6 +94,7 @@ type internalLocalServicesLeadClient interface {
 	setGoogleClientInfo(...string)
 	Connection() *grpc.ClientConn
 	AppendLeadConversation(context.Context, *servicespb.AppendLeadConversationRequest, ...gax.CallOption) (*servicespb.AppendLeadConversationResponse, error)
+	ProvideLeadFeedback(context.Context, *servicespb.ProvideLeadFeedbackRequest, ...gax.CallOption) (*servicespb.ProvideLeadFeedbackResponse, error)
 }
 
 // LocalServicesLeadClient is a client for interacting with Google Ads API.
@@ -123,6 +139,11 @@ func (c *LocalServicesLeadClient) AppendLeadConversation(ctx context.Context, re
 	return c.internalClient.AppendLeadConversation(ctx, req, opts...)
 }
 
+// ProvideLeadFeedback rPC to provide feedback on Local Services Lead resources.
+func (c *LocalServicesLeadClient) ProvideLeadFeedback(ctx context.Context, req *servicespb.ProvideLeadFeedbackRequest, opts ...gax.CallOption) (*servicespb.ProvideLeadFeedbackResponse, error) {
+	return c.internalClient.ProvideLeadFeedback(ctx, req, opts...)
+}
+
 // localServicesLeadGRPCClient is a client for interacting with Google Ads API over gRPC transport.
 //
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
@@ -138,6 +159,8 @@ type localServicesLeadGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewLocalServicesLeadClient creates a new local services lead service client based on gRPC.
@@ -164,6 +187,7 @@ func NewLocalServicesLeadClient(ctx context.Context, opts ...option.ClientOption
 		connPool:    connPool,
 		localServicesLeadClient: servicespb.NewLocalServicesLeadServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -186,7 +210,7 @@ func (c *localServicesLeadGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *localServicesLeadGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -207,7 +231,25 @@ func (c *localServicesLeadGRPCClient) AppendLeadConversation(ctx context.Context
 	var resp *servicespb.AppendLeadConversationResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.localServicesLeadClient.AppendLeadConversation(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.localServicesLeadClient.AppendLeadConversation, req, settings.GRPC, c.logger, "AppendLeadConversation")
+		return err
+	}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *localServicesLeadGRPCClient) ProvideLeadFeedback(ctx context.Context, req *servicespb.ProvideLeadFeedbackRequest, opts ...gax.CallOption) (*servicespb.ProvideLeadFeedbackResponse, error) {
+	hds := []string{"x-goog-request-params", fmt.Sprintf("%s=%v", "resource_name", url.QueryEscape(req.GetResourceName()))}
+
+	hds = append(c.xGoogHeaders, hds...)
+	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)
+	opts = append((*c.CallOptions).ProvideLeadFeedback[0:len((*c.CallOptions).ProvideLeadFeedback):len((*c.CallOptions).ProvideLeadFeedback)], opts...)
+	var resp *servicespb.ProvideLeadFeedbackResponse
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		resp, err = executeRPC(ctx, c.localServicesLeadClient.ProvideLeadFeedback, req, settings.GRPC, c.logger, "ProvideLeadFeedback")
 		return err
 	}, opts...)
 	if err != nil {

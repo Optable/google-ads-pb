@@ -1,4 +1,3 @@
-
 # Google Ads API Client Library for Golang
 
 [![Go](https://github.com/Optable/google-ads-pb/actions/workflows/go.yml/badge.svg?branch=main)](https://github.com/Optable/google-ads-pb/actions/workflows/go.yml)
@@ -21,6 +20,8 @@ Although this project isn't official, we deem it as low-risk due to its maturity
 
 | google-ads-pb         | Google Ads API | Sunset date           |
 | -----------------     | -------------- | --------------------- |
+| Not generated yet     | v19.1          | End of January 2026   |
+| Not generated yet     | v19            | End of January 2026   |
 | Not generated yet     | v18            | End of September 2025 |
 | Not generated yet     | v17.1          | End of May 2025       |
 | v1.2.0                | v17            | End of May 2025       |

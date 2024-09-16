@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -157,6 +158,8 @@ type billingSetupGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewBillingSetupClient creates a new billing setup service client based on gRPC.
@@ -191,6 +194,7 @@ func NewBillingSetupClient(ctx context.Context, opts ...option.ClientOption) (*B
 		connPool:    connPool,
 		billingSetupClient: servicespb.NewBillingSetupServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -213,7 +217,7 @@ func (c *billingSetupGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *billingSetupGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -234,7 +238,7 @@ func (c *billingSetupGRPCClient) MutateBillingSetup(ctx context.Context, req *se
 	var resp *servicespb.MutateBillingSetupResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.billingSetupClient.MutateBillingSetup(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.billingSetupClient.MutateBillingSetup, req, settings.GRPC, c.logger, "MutateBillingSetup")
 		return err
 	}, opts...)
 	if err != nil {

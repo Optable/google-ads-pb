@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v3.21.1
-// source: google/ads/googleads/v17/services/ad_group_asset_service.proto
+// source: google/ads/googleads/v19/services/ad_group_asset_service.proto
 
 package services
 
@@ -33,7 +33,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AdGroupAssetService_MutateAdGroupAssets_FullMethodName = "/google.ads.googleads.v17.services.AdGroupAssetService/MutateAdGroupAssets"
+	AdGroupAssetService_MutateAdGroupAssets_FullMethodName = "/google.ads.googleads.v19.services.AdGroupAssetService/MutateAdGroupAssets"
 )
 
 // AdGroupAssetServiceClient is the client API for AdGroupAssetService service.
@@ -158,7 +158,7 @@ func _AdGroupAssetService_MutateAdGroupAssets_Handler(srv interface{}, ctx conte
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AdGroupAssetService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "google.ads.googleads.v17.services.AdGroupAssetService",
+	ServiceName: "google.ads.googleads.v19.services.AdGroupAssetService",
 	HandlerType: (*AdGroupAssetServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -167,5 +167,5 @@ var AdGroupAssetService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "google/ads/googleads/v17/services/ad_group_asset_service.proto",
+	Metadata: "google/ads/googleads/v19/services/ad_group_asset_service.proto",
 }
