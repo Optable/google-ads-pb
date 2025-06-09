@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -179,6 +180,8 @@ type productLinkGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewProductLinkClient creates a new product link service client based on gRPC.
@@ -206,6 +209,7 @@ func NewProductLinkClient(ctx context.Context, opts ...option.ClientOption) (*Pr
 		connPool:    connPool,
 		productLinkClient: servicespb.NewProductLinkServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -228,7 +232,7 @@ func (c *productLinkGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *productLinkGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -249,7 +253,7 @@ func (c *productLinkGRPCClient) CreateProductLink(ctx context.Context, req *serv
 	var resp *servicespb.CreateProductLinkResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.productLinkClient.CreateProductLink(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.productLinkClient.CreateProductLink, req, settings.GRPC, c.logger, "CreateProductLink")
 		return err
 	}, opts...)
 	if err != nil {
@@ -267,7 +271,7 @@ func (c *productLinkGRPCClient) RemoveProductLink(ctx context.Context, req *serv
 	var resp *servicespb.RemoveProductLinkResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.productLinkClient.RemoveProductLink(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.productLinkClient.RemoveProductLink, req, settings.GRPC, c.logger, "RemoveProductLink")
 		return err
 	}, opts...)
 	if err != nil {

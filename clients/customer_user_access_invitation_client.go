@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -147,6 +148,8 @@ type customerUserAccessInvitationGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewCustomerUserAccessInvitationClient creates a new customer user access invitation service client based on gRPC.
@@ -174,6 +177,7 @@ func NewCustomerUserAccessInvitationClient(ctx context.Context, opts ...option.C
 		connPool:    connPool,
 		customerUserAccessInvitationClient: servicespb.NewCustomerUserAccessInvitationServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -196,7 +200,7 @@ func (c *customerUserAccessInvitationGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *customerUserAccessInvitationGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -217,7 +221,7 @@ func (c *customerUserAccessInvitationGRPCClient) MutateCustomerUserAccessInvitat
 	var resp *servicespb.MutateCustomerUserAccessInvitationResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.customerUserAccessInvitationClient.MutateCustomerUserAccessInvitation(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.customerUserAccessInvitationClient.MutateCustomerUserAccessInvitation, req, settings.GRPC, c.logger, "MutateCustomerUserAccessInvitation")
 		return err
 	}, opts...)
 	if err != nil {

@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -187,6 +188,8 @@ type customerManagerLinkGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewCustomerManagerLinkClient creates a new customer manager link service client based on gRPC.
@@ -213,6 +216,7 @@ func NewCustomerManagerLinkClient(ctx context.Context, opts ...option.ClientOpti
 		connPool:    connPool,
 		customerManagerLinkClient: servicespb.NewCustomerManagerLinkServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -235,7 +239,7 @@ func (c *customerManagerLinkGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *customerManagerLinkGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -256,7 +260,7 @@ func (c *customerManagerLinkGRPCClient) MutateCustomerManagerLink(ctx context.Co
 	var resp *servicespb.MutateCustomerManagerLinkResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.customerManagerLinkClient.MutateCustomerManagerLink(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.customerManagerLinkClient.MutateCustomerManagerLink, req, settings.GRPC, c.logger, "MutateCustomerManagerLink")
 		return err
 	}, opts...)
 	if err != nil {
@@ -274,7 +278,7 @@ func (c *customerManagerLinkGRPCClient) MoveManagerLink(ctx context.Context, req
 	var resp *servicespb.MoveManagerLinkResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.customerManagerLinkClient.MoveManagerLink(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.customerManagerLinkClient.MoveManagerLink, req, settings.GRPC, c.logger, "MoveManagerLink")
 		return err
 	}, opts...)
 	if err != nil {

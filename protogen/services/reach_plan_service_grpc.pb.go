@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             v3.21.1
-// source: google/ads/googleads/v17/services/reach_plan_service.proto
+// source: google/ads/googleads/v20/services/reach_plan_service.proto
 
 package services
 
@@ -33,9 +33,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ReachPlanService_ListPlannableLocations_FullMethodName = "/google.ads.googleads.v17.services.ReachPlanService/ListPlannableLocations"
-	ReachPlanService_ListPlannableProducts_FullMethodName  = "/google.ads.googleads.v17.services.ReachPlanService/ListPlannableProducts"
-	ReachPlanService_GenerateReachForecast_FullMethodName  = "/google.ads.googleads.v17.services.ReachPlanService/GenerateReachForecast"
+	ReachPlanService_GenerateConversionRates_FullMethodName = "/google.ads.googleads.v20.services.ReachPlanService/GenerateConversionRates"
+	ReachPlanService_ListPlannableLocations_FullMethodName  = "/google.ads.googleads.v20.services.ReachPlanService/ListPlannableLocations"
+	ReachPlanService_ListPlannableProducts_FullMethodName   = "/google.ads.googleads.v20.services.ReachPlanService/ListPlannableProducts"
+	ReachPlanService_GenerateReachForecast_FullMethodName   = "/google.ads.googleads.v20.services.ReachPlanService/GenerateReachForecast"
+	ReachPlanService_ListPlannableUserLists_FullMethodName  = "/google.ads.googleads.v20.services.ReachPlanService/ListPlannableUserLists"
 )
 
 // ReachPlanServiceClient is the client API for ReachPlanService service.
@@ -48,6 +50,18 @@ const (
 // demographics that can be reached by an ad in a given market by a campaign of
 // certain duration with a defined budget.
 type ReachPlanServiceClient interface {
+	// Returns a collection of conversion rate suggestions for supported plannable
+	// products.
+	//
+	// List of thrown errors:
+	//
+	//	[AuthenticationError]()
+	//	[AuthorizationError]()
+	//	[HeaderError]()
+	//	[InternalError]()
+	//	[QuotaError]()
+	//	[RequestError]()
+	GenerateConversionRates(ctx context.Context, in *GenerateConversionRatesRequest, opts ...grpc.CallOption) (*GenerateConversionRatesResponse, error)
 	// Returns the list of plannable locations (for example, countries).
 	//
 	// List of thrown errors:
@@ -85,6 +99,20 @@ type ReachPlanServiceClient interface {
 	//	[ReachPlanError]()
 	//	[RequestError]()
 	GenerateReachForecast(ctx context.Context, in *GenerateReachForecastRequest, opts ...grpc.CallOption) (*GenerateReachForecastResponse, error)
+	// Returns the list of plannable user lists with their plannable status.
+	//
+	// List of thrown errors:
+	//
+	//	[AuthenticationError]()
+	//	[AuthorizationError]()
+	//	[FieldError]()
+	//	[HeaderError]()
+	//	[InternalError]()
+	//	[QuotaError]()
+	//	[RangeError]()
+	//	[ReachPlanError]()
+	//	[RequestError]()
+	ListPlannableUserLists(ctx context.Context, in *ListPlannableUserListsRequest, opts ...grpc.CallOption) (*ListPlannableUserListsResponse, error)
 }
 
 type reachPlanServiceClient struct {
@@ -93,6 +121,16 @@ type reachPlanServiceClient struct {
 
 func NewReachPlanServiceClient(cc grpc.ClientConnInterface) ReachPlanServiceClient {
 	return &reachPlanServiceClient{cc}
+}
+
+func (c *reachPlanServiceClient) GenerateConversionRates(ctx context.Context, in *GenerateConversionRatesRequest, opts ...grpc.CallOption) (*GenerateConversionRatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GenerateConversionRatesResponse)
+	err := c.cc.Invoke(ctx, ReachPlanService_GenerateConversionRates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *reachPlanServiceClient) ListPlannableLocations(ctx context.Context, in *ListPlannableLocationsRequest, opts ...grpc.CallOption) (*ListPlannableLocationsResponse, error) {
@@ -125,6 +163,16 @@ func (c *reachPlanServiceClient) GenerateReachForecast(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *reachPlanServiceClient) ListPlannableUserLists(ctx context.Context, in *ListPlannableUserListsRequest, opts ...grpc.CallOption) (*ListPlannableUserListsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListPlannableUserListsResponse)
+	err := c.cc.Invoke(ctx, ReachPlanService_ListPlannableUserLists_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ReachPlanServiceServer is the server API for ReachPlanService service.
 // All implementations must embed UnimplementedReachPlanServiceServer
 // for forward compatibility.
@@ -135,6 +183,18 @@ func (c *reachPlanServiceClient) GenerateReachForecast(ctx context.Context, in *
 // demographics that can be reached by an ad in a given market by a campaign of
 // certain duration with a defined budget.
 type ReachPlanServiceServer interface {
+	// Returns a collection of conversion rate suggestions for supported plannable
+	// products.
+	//
+	// List of thrown errors:
+	//
+	//	[AuthenticationError]()
+	//	[AuthorizationError]()
+	//	[HeaderError]()
+	//	[InternalError]()
+	//	[QuotaError]()
+	//	[RequestError]()
+	GenerateConversionRates(context.Context, *GenerateConversionRatesRequest) (*GenerateConversionRatesResponse, error)
 	// Returns the list of plannable locations (for example, countries).
 	//
 	// List of thrown errors:
@@ -172,6 +232,20 @@ type ReachPlanServiceServer interface {
 	//	[ReachPlanError]()
 	//	[RequestError]()
 	GenerateReachForecast(context.Context, *GenerateReachForecastRequest) (*GenerateReachForecastResponse, error)
+	// Returns the list of plannable user lists with their plannable status.
+	//
+	// List of thrown errors:
+	//
+	//	[AuthenticationError]()
+	//	[AuthorizationError]()
+	//	[FieldError]()
+	//	[HeaderError]()
+	//	[InternalError]()
+	//	[QuotaError]()
+	//	[RangeError]()
+	//	[ReachPlanError]()
+	//	[RequestError]()
+	ListPlannableUserLists(context.Context, *ListPlannableUserListsRequest) (*ListPlannableUserListsResponse, error)
 	mustEmbedUnimplementedReachPlanServiceServer()
 }
 
@@ -182,6 +256,9 @@ type ReachPlanServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedReachPlanServiceServer struct{}
 
+func (UnimplementedReachPlanServiceServer) GenerateConversionRates(context.Context, *GenerateConversionRatesRequest) (*GenerateConversionRatesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateConversionRates not implemented")
+}
 func (UnimplementedReachPlanServiceServer) ListPlannableLocations(context.Context, *ListPlannableLocationsRequest) (*ListPlannableLocationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPlannableLocations not implemented")
 }
@@ -190,6 +267,9 @@ func (UnimplementedReachPlanServiceServer) ListPlannableProducts(context.Context
 }
 func (UnimplementedReachPlanServiceServer) GenerateReachForecast(context.Context, *GenerateReachForecastRequest) (*GenerateReachForecastResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateReachForecast not implemented")
+}
+func (UnimplementedReachPlanServiceServer) ListPlannableUserLists(context.Context, *ListPlannableUserListsRequest) (*ListPlannableUserListsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPlannableUserLists not implemented")
 }
 func (UnimplementedReachPlanServiceServer) mustEmbedUnimplementedReachPlanServiceServer() {}
 func (UnimplementedReachPlanServiceServer) testEmbeddedByValue()                          {}
@@ -210,6 +290,24 @@ func RegisterReachPlanServiceServer(s grpc.ServiceRegistrar, srv ReachPlanServic
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&ReachPlanService_ServiceDesc, srv)
+}
+
+func _ReachPlanService_GenerateConversionRates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateConversionRatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReachPlanServiceServer).GenerateConversionRates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReachPlanService_GenerateConversionRates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReachPlanServiceServer).GenerateConversionRates(ctx, req.(*GenerateConversionRatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ReachPlanService_ListPlannableLocations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -266,13 +364,35 @@ func _ReachPlanService_GenerateReachForecast_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ReachPlanService_ListPlannableUserLists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPlannableUserListsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReachPlanServiceServer).ListPlannableUserLists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReachPlanService_ListPlannableUserLists_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReachPlanServiceServer).ListPlannableUserLists(ctx, req.(*ListPlannableUserListsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ReachPlanService_ServiceDesc is the grpc.ServiceDesc for ReachPlanService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var ReachPlanService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "google.ads.googleads.v17.services.ReachPlanService",
+	ServiceName: "google.ads.googleads.v20.services.ReachPlanService",
 	HandlerType: (*ReachPlanServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GenerateConversionRates",
+			Handler:    _ReachPlanService_GenerateConversionRates_Handler,
+		},
 		{
 			MethodName: "ListPlannableLocations",
 			Handler:    _ReachPlanService_ListPlannableLocations_Handler,
@@ -285,7 +405,11 @@ var ReachPlanService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GenerateReachForecast",
 			Handler:    _ReachPlanService_GenerateReachForecast_Handler,
 		},
+		{
+			MethodName: "ListPlannableUserLists",
+			Handler:    _ReachPlanService_ListPlannableUserLists_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "google/ads/googleads/v17/services/reach_plan_service.proto",
+	Metadata: "google/ads/googleads/v20/services/reach_plan_service.proto",
 }

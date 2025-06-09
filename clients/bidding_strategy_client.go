@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -166,6 +167,8 @@ type biddingStrategyGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewBiddingStrategyClient creates a new bidding strategy service client based on gRPC.
@@ -192,6 +195,7 @@ func NewBiddingStrategyClient(ctx context.Context, opts ...option.ClientOption) 
 		connPool:    connPool,
 		biddingStrategyClient: servicespb.NewBiddingStrategyServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -214,7 +218,7 @@ func (c *biddingStrategyGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *biddingStrategyGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -235,7 +239,7 @@ func (c *biddingStrategyGRPCClient) MutateBiddingStrategies(ctx context.Context,
 	var resp *servicespb.MutateBiddingStrategiesResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.biddingStrategyClient.MutateBiddingStrategies(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.biddingStrategyClient.MutateBiddingStrategies, req, settings.GRPC, c.logger, "MutateBiddingStrategies")
 		return err
 	}, opts...)
 	if err != nil {
