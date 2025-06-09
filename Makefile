@@ -32,7 +32,7 @@ generate:
 .PHONY: go-install-deps
 go-install-deps:
 	@echo "\nInstalling dependencies..."
-	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.31.0
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.6
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
 	go install github.com/googleapis/gapic-generator-go/cmd/protoc-gen-go_gapic@latest
 
