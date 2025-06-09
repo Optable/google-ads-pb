@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -238,6 +239,8 @@ type keywordPlanIdeaGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewKeywordPlanIdeaClient creates a new keyword plan idea service client based on gRPC.
@@ -264,6 +267,7 @@ func NewKeywordPlanIdeaClient(ctx context.Context, opts ...option.ClientOption) 
 		connPool:    connPool,
 		keywordPlanIdeaClient: servicespb.NewKeywordPlanIdeaServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -286,7 +290,7 @@ func (c *keywordPlanIdeaGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *keywordPlanIdeaGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -318,7 +322,7 @@ func (c *keywordPlanIdeaGRPCClient) GenerateKeywordIdeas(ctx context.Context, re
 		}
 		err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 			var err error
-			resp, err = c.keywordPlanIdeaClient.GenerateKeywordIdeas(ctx, req, settings.GRPC...)
+			resp, err = executeRPC(ctx, c.keywordPlanIdeaClient.GenerateKeywordIdeas, req, settings.GRPC, c.logger, "GenerateKeywordIdeas")
 			return err
 		}, opts...)
 		if err != nil {
@@ -353,7 +357,7 @@ func (c *keywordPlanIdeaGRPCClient) GenerateKeywordHistoricalMetrics(ctx context
 	var resp *servicespb.GenerateKeywordHistoricalMetricsResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.keywordPlanIdeaClient.GenerateKeywordHistoricalMetrics(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.keywordPlanIdeaClient.GenerateKeywordHistoricalMetrics, req, settings.GRPC, c.logger, "GenerateKeywordHistoricalMetrics")
 		return err
 	}, opts...)
 	if err != nil {
@@ -371,7 +375,7 @@ func (c *keywordPlanIdeaGRPCClient) GenerateAdGroupThemes(ctx context.Context, r
 	var resp *servicespb.GenerateAdGroupThemesResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.keywordPlanIdeaClient.GenerateAdGroupThemes(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.keywordPlanIdeaClient.GenerateAdGroupThemes, req, settings.GRPC, c.logger, "GenerateAdGroupThemes")
 		return err
 	}, opts...)
 	if err != nil {
@@ -389,7 +393,7 @@ func (c *keywordPlanIdeaGRPCClient) GenerateKeywordForecastMetrics(ctx context.C
 	var resp *servicespb.GenerateKeywordForecastMetricsResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.keywordPlanIdeaClient.GenerateKeywordForecastMetrics(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.keywordPlanIdeaClient.GenerateKeywordForecastMetrics, req, settings.GRPC, c.logger, "GenerateKeywordForecastMetrics")
 		return err
 	}, opts...)
 	if err != nil {

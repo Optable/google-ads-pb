@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -345,6 +346,8 @@ type experimentGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewExperimentClient creates a new experiment service client based on gRPC.
@@ -371,6 +374,7 @@ func NewExperimentClient(ctx context.Context, opts ...option.ClientOption) (*Exp
 		connPool:    connPool,
 		experimentClient: servicespb.NewExperimentServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -404,7 +408,7 @@ func (c *experimentGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *experimentGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -425,7 +429,7 @@ func (c *experimentGRPCClient) MutateExperiments(ctx context.Context, req *servi
 	var resp *servicespb.MutateExperimentsResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.experimentClient.MutateExperiments(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.experimentClient.MutateExperiments, req, settings.GRPC, c.logger, "MutateExperiments")
 		return err
 	}, opts...)
 	if err != nil {
@@ -442,7 +446,7 @@ func (c *experimentGRPCClient) EndExperiment(ctx context.Context, req *servicesp
 	opts = append((*c.CallOptions).EndExperiment[0:len((*c.CallOptions).EndExperiment):len((*c.CallOptions).EndExperiment)], opts...)
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		_, err = c.experimentClient.EndExperiment(ctx, req, settings.GRPC...)
+		_, err = executeRPC(ctx, c.experimentClient.EndExperiment, req, settings.GRPC, c.logger, "EndExperiment")
 		return err
 	}, opts...)
 	return err
@@ -468,7 +472,7 @@ func (c *experimentGRPCClient) ListExperimentAsyncErrors(ctx context.Context, re
 		}
 		err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 			var err error
-			resp, err = c.experimentClient.ListExperimentAsyncErrors(ctx, req, settings.GRPC...)
+			resp, err = executeRPC(ctx, c.experimentClient.ListExperimentAsyncErrors, req, settings.GRPC, c.logger, "ListExperimentAsyncErrors")
 			return err
 		}, opts...)
 		if err != nil {
@@ -502,7 +506,7 @@ func (c *experimentGRPCClient) GraduateExperiment(ctx context.Context, req *serv
 	opts = append((*c.CallOptions).GraduateExperiment[0:len((*c.CallOptions).GraduateExperiment):len((*c.CallOptions).GraduateExperiment)], opts...)
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		_, err = c.experimentClient.GraduateExperiment(ctx, req, settings.GRPC...)
+		_, err = executeRPC(ctx, c.experimentClient.GraduateExperiment, req, settings.GRPC, c.logger, "GraduateExperiment")
 		return err
 	}, opts...)
 	return err
@@ -517,7 +521,7 @@ func (c *experimentGRPCClient) ScheduleExperiment(ctx context.Context, req *serv
 	var resp *longrunningpb.Operation
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.experimentClient.ScheduleExperiment(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.experimentClient.ScheduleExperiment, req, settings.GRPC, c.logger, "ScheduleExperiment")
 		return err
 	}, opts...)
 	if err != nil {
@@ -537,7 +541,7 @@ func (c *experimentGRPCClient) PromoteExperiment(ctx context.Context, req *servi
 	var resp *longrunningpb.Operation
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.experimentClient.PromoteExperiment(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.experimentClient.PromoteExperiment, req, settings.GRPC, c.logger, "PromoteExperiment")
 		return err
 	}, opts...)
 	if err != nil {

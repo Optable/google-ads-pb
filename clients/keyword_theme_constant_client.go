@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package clients
 
 import (
 	"context"
+	"log/slog"
 	"math"
 	"time"
 
@@ -143,6 +144,8 @@ type keywordThemeConstantGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewKeywordThemeConstantClient creates a new keyword theme constant service client based on gRPC.
@@ -169,6 +172,7 @@ func NewKeywordThemeConstantClient(ctx context.Context, opts ...option.ClientOpt
 		connPool:    connPool,
 		keywordThemeConstantClient: servicespb.NewKeywordThemeConstantServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -191,7 +195,7 @@ func (c *keywordThemeConstantGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *keywordThemeConstantGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -209,7 +213,7 @@ func (c *keywordThemeConstantGRPCClient) SuggestKeywordThemeConstants(ctx contex
 	var resp *servicespb.SuggestKeywordThemeConstantsResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.keywordThemeConstantClient.SuggestKeywordThemeConstants(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.keywordThemeConstantClient.SuggestKeywordThemeConstants, req, settings.GRPC, c.logger, "SuggestKeywordThemeConstants")
 		return err
 	}, opts...)
 	if err != nil {

@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -146,6 +147,8 @@ type campaignLifecycleGoalGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewCampaignLifecycleGoalClient creates a new campaign lifecycle goal service client based on gRPC.
@@ -172,6 +175,7 @@ func NewCampaignLifecycleGoalClient(ctx context.Context, opts ...option.ClientOp
 		connPool:    connPool,
 		campaignLifecycleGoalClient: servicespb.NewCampaignLifecycleGoalServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -194,7 +198,7 @@ func (c *campaignLifecycleGoalGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *campaignLifecycleGoalGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -215,7 +219,7 @@ func (c *campaignLifecycleGoalGRPCClient) ConfigureCampaignLifecycleGoals(ctx co
 	var resp *servicespb.ConfigureCampaignLifecycleGoalsResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.campaignLifecycleGoalClient.ConfigureCampaignLifecycleGoals(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.campaignLifecycleGoalClient.ConfigureCampaignLifecycleGoals, req, settings.GRPC, c.logger, "ConfigureCampaignLifecycleGoals")
 		return err
 	}, opts...)
 	if err != nil {

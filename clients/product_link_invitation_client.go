@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -178,6 +179,8 @@ type productLinkInvitationGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewProductLinkInvitationClient creates a new product link invitation service client based on gRPC.
@@ -205,6 +208,7 @@ func NewProductLinkInvitationClient(ctx context.Context, opts ...option.ClientOp
 		connPool:    connPool,
 		productLinkInvitationClient: servicespb.NewProductLinkInvitationServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -227,7 +231,7 @@ func (c *productLinkInvitationGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *productLinkInvitationGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -248,7 +252,7 @@ func (c *productLinkInvitationGRPCClient) CreateProductLinkInvitation(ctx contex
 	var resp *servicespb.CreateProductLinkInvitationResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.productLinkInvitationClient.CreateProductLinkInvitation(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.productLinkInvitationClient.CreateProductLinkInvitation, req, settings.GRPC, c.logger, "CreateProductLinkInvitation")
 		return err
 	}, opts...)
 	if err != nil {
@@ -266,7 +270,7 @@ func (c *productLinkInvitationGRPCClient) UpdateProductLinkInvitation(ctx contex
 	var resp *servicespb.UpdateProductLinkInvitationResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.productLinkInvitationClient.UpdateProductLinkInvitation(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.productLinkInvitationClient.UpdateProductLinkInvitation, req, settings.GRPC, c.logger, "UpdateProductLinkInvitation")
 		return err
 	}, opts...)
 	if err != nil {
@@ -284,7 +288,7 @@ func (c *productLinkInvitationGRPCClient) RemoveProductLinkInvitation(ctx contex
 	var resp *servicespb.RemoveProductLinkInvitationResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.productLinkInvitationClient.RemoveProductLinkInvitation(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.productLinkInvitationClient.RemoveProductLinkInvitation, req, settings.GRPC, c.logger, "RemoveProductLinkInvitation")
 		return err
 	}, opts...)
 	if err != nil {

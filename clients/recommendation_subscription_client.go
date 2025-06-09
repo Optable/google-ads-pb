@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -150,6 +151,8 @@ type recommendationSubscriptionGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewRecommendationSubscriptionClient creates a new recommendation subscription service client based on gRPC.
@@ -176,6 +179,7 @@ func NewRecommendationSubscriptionClient(ctx context.Context, opts ...option.Cli
 		connPool:    connPool,
 		recommendationSubscriptionClient: servicespb.NewRecommendationSubscriptionServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -198,7 +202,7 @@ func (c *recommendationSubscriptionGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *recommendationSubscriptionGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -219,7 +223,7 @@ func (c *recommendationSubscriptionGRPCClient) MutateRecommendationSubscription(
 	var resp *servicespb.MutateRecommendationSubscriptionResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.recommendationSubscriptionClient.MutateRecommendationSubscription(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.recommendationSubscriptionClient.MutateRecommendationSubscription, req, settings.GRPC, c.logger, "MutateRecommendationSubscription")
 		return err
 	}, opts...)
 	if err != nil {
