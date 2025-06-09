@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -138,6 +139,8 @@ type customConversionGoalGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewCustomConversionGoalClient creates a new custom conversion goal service client based on gRPC.
@@ -164,6 +167,7 @@ func NewCustomConversionGoalClient(ctx context.Context, opts ...option.ClientOpt
 		connPool:    connPool,
 		customConversionGoalClient: servicespb.NewCustomConversionGoalServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -186,7 +190,7 @@ func (c *customConversionGoalGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *customConversionGoalGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -207,7 +211,7 @@ func (c *customConversionGoalGRPCClient) MutateCustomConversionGoals(ctx context
 	var resp *servicespb.MutateCustomConversionGoalsResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.customConversionGoalClient.MutateCustomConversionGoals(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.customConversionGoalClient.MutateCustomConversionGoals, req, settings.GRPC, c.logger, "MutateCustomConversionGoals")
 		return err
 	}, opts...)
 	if err != nil {

@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -168,6 +169,8 @@ type assetGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewAssetClient creates a new asset service client based on gRPC.
@@ -196,6 +199,7 @@ func NewAssetClient(ctx context.Context, opts ...option.ClientOption) (*AssetCli
 		connPool:    connPool,
 		assetClient: servicespb.NewAssetServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -218,7 +222,7 @@ func (c *assetGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *assetGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -239,7 +243,7 @@ func (c *assetGRPCClient) MutateAssets(ctx context.Context, req *servicespb.Muta
 	var resp *servicespb.MutateAssetsResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.assetClient.MutateAssets(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.assetClient.MutateAssets, req, settings.GRPC, c.logger, "MutateAssets")
 		return err
 	}, opts...)
 	if err != nil {

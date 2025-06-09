@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -138,6 +139,8 @@ type customerCustomizerGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewCustomerCustomizerClient creates a new customer customizer service client based on gRPC.
@@ -164,6 +167,7 @@ func NewCustomerCustomizerClient(ctx context.Context, opts ...option.ClientOptio
 		connPool:    connPool,
 		customerCustomizerClient: servicespb.NewCustomerCustomizerServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -186,7 +190,7 @@ func (c *customerCustomizerGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *customerCustomizerGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -207,7 +211,7 @@ func (c *customerCustomizerGRPCClient) MutateCustomerCustomizers(ctx context.Con
 	var resp *servicespb.MutateCustomerCustomizersResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.customerCustomizerClient.MutateCustomerCustomizers(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.customerCustomizerClient.MutateCustomerCustomizers, req, settings.GRPC, c.logger, "MutateCustomerCustomizers")
 		return err
 	}, opts...)
 	if err != nil {

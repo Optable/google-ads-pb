@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -37,9 +38,11 @@ var newReachPlanClientHook clientHook
 
 // ReachPlanCallOptions contains the retry settings for each method of ReachPlanClient.
 type ReachPlanCallOptions struct {
+	GenerateConversionRates []gax.CallOption
 	ListPlannableLocations []gax.CallOption
 	ListPlannableProducts []gax.CallOption
 	GenerateReachForecast []gax.CallOption
+	ListPlannableUserLists []gax.CallOption
 }
 
 func defaultReachPlanGRPCClientOptions() []option.ClientOption {
@@ -59,6 +62,19 @@ func defaultReachPlanGRPCClientOptions() []option.ClientOption {
 
 func defaultReachPlanCallOptions() *ReachPlanCallOptions {
 	return &ReachPlanCallOptions{
+		GenerateConversionRates: []gax.CallOption{
+			gax.WithTimeout(14400000 * time.Millisecond),
+			gax.WithRetry(func() gax.Retryer {
+				return gax.OnCodes([]codes.Code{
+					codes.Unavailable,
+					codes.DeadlineExceeded,
+				}, gax.Backoff{
+					Initial:    5000 * time.Millisecond,
+					Max:        60000 * time.Millisecond,
+					Multiplier: 1.30,
+				})
+			}),
+		},
 		ListPlannableLocations: []gax.CallOption{
 			gax.WithTimeout(14400000 * time.Millisecond),
 			gax.WithRetry(func() gax.Retryer {
@@ -98,6 +114,19 @@ func defaultReachPlanCallOptions() *ReachPlanCallOptions {
 				})
 			}),
 		},
+		ListPlannableUserLists: []gax.CallOption{
+			gax.WithTimeout(14400000 * time.Millisecond),
+			gax.WithRetry(func() gax.Retryer {
+				return gax.OnCodes([]codes.Code{
+					codes.Unavailable,
+					codes.DeadlineExceeded,
+				}, gax.Backoff{
+					Initial:    5000 * time.Millisecond,
+					Max:        60000 * time.Millisecond,
+					Multiplier: 1.30,
+				})
+			}),
+		},
 	}
 }
 
@@ -106,9 +135,11 @@ type internalReachPlanClient interface {
 	Close() error
 	setGoogleClientInfo(...string)
 	Connection() *grpc.ClientConn
+	GenerateConversionRates(context.Context, *servicespb.GenerateConversionRatesRequest, ...gax.CallOption) (*servicespb.GenerateConversionRatesResponse, error)
 	ListPlannableLocations(context.Context, *servicespb.ListPlannableLocationsRequest, ...gax.CallOption) (*servicespb.ListPlannableLocationsResponse, error)
 	ListPlannableProducts(context.Context, *servicespb.ListPlannableProductsRequest, ...gax.CallOption) (*servicespb.ListPlannableProductsResponse, error)
 	GenerateReachForecast(context.Context, *servicespb.GenerateReachForecastRequest, ...gax.CallOption) (*servicespb.GenerateReachForecastResponse, error)
+	ListPlannableUserLists(context.Context, *servicespb.ListPlannableUserListsRequest, ...gax.CallOption) (*servicespb.ListPlannableUserListsResponse, error)
 }
 
 // ReachPlanClient is a client for interacting with Google Ads API.
@@ -149,6 +180,20 @@ func (c *ReachPlanClient) setGoogleClientInfo(keyval ...string) {
 // return the same resource.
 func (c *ReachPlanClient) Connection() *grpc.ClientConn {
 	return c.internalClient.Connection()
+}
+
+// GenerateConversionRates returns a collection of conversion rate suggestions for supported plannable
+// products.
+//
+// List of thrown errors:
+// AuthenticationError (at )
+// AuthorizationError (at )
+// HeaderError (at )
+// InternalError (at )
+// QuotaError (at )
+// RequestError (at )
+func (c *ReachPlanClient) GenerateConversionRates(ctx context.Context, req *servicespb.GenerateConversionRatesRequest, opts ...gax.CallOption) (*servicespb.GenerateConversionRatesResponse, error) {
+	return c.internalClient.GenerateConversionRates(ctx, req, opts...)
 }
 
 // ListPlannableLocations returns the list of plannable locations (for example, countries).
@@ -194,6 +239,22 @@ func (c *ReachPlanClient) GenerateReachForecast(ctx context.Context, req *servic
 	return c.internalClient.GenerateReachForecast(ctx, req, opts...)
 }
 
+// ListPlannableUserLists returns the list of plannable user lists with their plannable status.
+//
+// List of thrown errors:
+// AuthenticationError (at )
+// AuthorizationError (at )
+// FieldError (at )
+// HeaderError (at )
+// InternalError (at )
+// QuotaError (at )
+// RangeError (at )
+// ReachPlanError (at )
+// RequestError (at )
+func (c *ReachPlanClient) ListPlannableUserLists(ctx context.Context, req *servicespb.ListPlannableUserListsRequest, opts ...gax.CallOption) (*servicespb.ListPlannableUserListsResponse, error) {
+	return c.internalClient.ListPlannableUserLists(ctx, req, opts...)
+}
+
 // reachPlanGRPCClient is a client for interacting with Google Ads API over gRPC transport.
 //
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
@@ -209,6 +270,8 @@ type reachPlanGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewReachPlanClient creates a new reach plan service client based on gRPC.
@@ -239,6 +302,7 @@ func NewReachPlanClient(ctx context.Context, opts ...option.ClientOption) (*Reac
 		connPool:    connPool,
 		reachPlanClient: servicespb.NewReachPlanServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -261,7 +325,7 @@ func (c *reachPlanGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *reachPlanGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -273,13 +337,28 @@ func (c *reachPlanGRPCClient) Close() error {
 	return c.connPool.Close()
 }
 
+func (c *reachPlanGRPCClient) GenerateConversionRates(ctx context.Context, req *servicespb.GenerateConversionRatesRequest, opts ...gax.CallOption) (*servicespb.GenerateConversionRatesResponse, error) {
+	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
+	opts = append((*c.CallOptions).GenerateConversionRates[0:len((*c.CallOptions).GenerateConversionRates):len((*c.CallOptions).GenerateConversionRates)], opts...)
+	var resp *servicespb.GenerateConversionRatesResponse
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		resp, err = executeRPC(ctx, c.reachPlanClient.GenerateConversionRates, req, settings.GRPC, c.logger, "GenerateConversionRates")
+		return err
+	}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
 func (c *reachPlanGRPCClient) ListPlannableLocations(ctx context.Context, req *servicespb.ListPlannableLocationsRequest, opts ...gax.CallOption) (*servicespb.ListPlannableLocationsResponse, error) {
 	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
 	opts = append((*c.CallOptions).ListPlannableLocations[0:len((*c.CallOptions).ListPlannableLocations):len((*c.CallOptions).ListPlannableLocations)], opts...)
 	var resp *servicespb.ListPlannableLocationsResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.reachPlanClient.ListPlannableLocations(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.reachPlanClient.ListPlannableLocations, req, settings.GRPC, c.logger, "ListPlannableLocations")
 		return err
 	}, opts...)
 	if err != nil {
@@ -294,7 +373,7 @@ func (c *reachPlanGRPCClient) ListPlannableProducts(ctx context.Context, req *se
 	var resp *servicespb.ListPlannableProductsResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.reachPlanClient.ListPlannableProducts(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.reachPlanClient.ListPlannableProducts, req, settings.GRPC, c.logger, "ListPlannableProducts")
 		return err
 	}, opts...)
 	if err != nil {
@@ -312,7 +391,22 @@ func (c *reachPlanGRPCClient) GenerateReachForecast(ctx context.Context, req *se
 	var resp *servicespb.GenerateReachForecastResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.reachPlanClient.GenerateReachForecast(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.reachPlanClient.GenerateReachForecast, req, settings.GRPC, c.logger, "GenerateReachForecast")
+		return err
+	}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *reachPlanGRPCClient) ListPlannableUserLists(ctx context.Context, req *servicespb.ListPlannableUserListsRequest, opts ...gax.CallOption) (*servicespb.ListPlannableUserListsResponse, error) {
+	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
+	opts = append((*c.CallOptions).ListPlannableUserLists[0:len((*c.CallOptions).ListPlannableUserLists):len((*c.CallOptions).ListPlannableUserLists)], opts...)
+	var resp *servicespb.ListPlannableUserListsResponse
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		resp, err = executeRPC(ctx, c.reachPlanClient.ListPlannableUserLists, req, settings.GRPC, c.logger, "ListPlannableUserLists")
 		return err
 	}, opts...)
 	if err != nil {
