@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -178,6 +179,8 @@ type smartCampaignSuggestGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewSmartCampaignSuggestClient creates a new smart campaign suggest service client based on gRPC.
@@ -204,6 +207,7 @@ func NewSmartCampaignSuggestClient(ctx context.Context, opts ...option.ClientOpt
 		connPool:    connPool,
 		smartCampaignSuggestClient: servicespb.NewSmartCampaignSuggestServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -226,7 +230,7 @@ func (c *smartCampaignSuggestGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *smartCampaignSuggestGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -247,7 +251,7 @@ func (c *smartCampaignSuggestGRPCClient) SuggestSmartCampaignBudgetOptions(ctx c
 	var resp *servicespb.SuggestSmartCampaignBudgetOptionsResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.smartCampaignSuggestClient.SuggestSmartCampaignBudgetOptions(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.smartCampaignSuggestClient.SuggestSmartCampaignBudgetOptions, req, settings.GRPC, c.logger, "SuggestSmartCampaignBudgetOptions")
 		return err
 	}, opts...)
 	if err != nil {
@@ -265,7 +269,7 @@ func (c *smartCampaignSuggestGRPCClient) SuggestSmartCampaignAd(ctx context.Cont
 	var resp *servicespb.SuggestSmartCampaignAdResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.smartCampaignSuggestClient.SuggestSmartCampaignAd(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.smartCampaignSuggestClient.SuggestSmartCampaignAd, req, settings.GRPC, c.logger, "SuggestSmartCampaignAd")
 		return err
 	}, opts...)
 	if err != nil {
@@ -283,7 +287,7 @@ func (c *smartCampaignSuggestGRPCClient) SuggestKeywordThemes(ctx context.Contex
 	var resp *servicespb.SuggestKeywordThemesResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.smartCampaignSuggestClient.SuggestKeywordThemes(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.smartCampaignSuggestClient.SuggestKeywordThemes, req, settings.GRPC, c.logger, "SuggestKeywordThemes")
 		return err
 	}, opts...)
 	if err != nil {

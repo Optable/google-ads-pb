@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -43,6 +44,7 @@ type AudienceInsightsCallOptions struct {
 	GenerateAudienceCompositionInsights []gax.CallOption
 	GenerateSuggestedTargetingInsights []gax.CallOption
 	GenerateAudienceOverlapInsights []gax.CallOption
+	GenerateTargetingSuggestionMetrics []gax.CallOption
 }
 
 func defaultAudienceInsightsGRPCClientOptions() []option.ClientOption {
@@ -140,6 +142,19 @@ func defaultAudienceInsightsCallOptions() *AudienceInsightsCallOptions {
 				})
 			}),
 		},
+		GenerateTargetingSuggestionMetrics: []gax.CallOption{
+			gax.WithTimeout(14400000 * time.Millisecond),
+			gax.WithRetry(func() gax.Retryer {
+				return gax.OnCodes([]codes.Code{
+					codes.Unavailable,
+					codes.DeadlineExceeded,
+				}, gax.Backoff{
+					Initial:    5000 * time.Millisecond,
+					Max:        60000 * time.Millisecond,
+					Multiplier: 1.30,
+				})
+			}),
+		},
 	}
 }
 
@@ -154,6 +169,7 @@ type internalAudienceInsightsClient interface {
 	GenerateAudienceCompositionInsights(context.Context, *servicespb.GenerateAudienceCompositionInsightsRequest, ...gax.CallOption) (*servicespb.GenerateAudienceCompositionInsightsResponse, error)
 	GenerateSuggestedTargetingInsights(context.Context, *servicespb.GenerateSuggestedTargetingInsightsRequest, ...gax.CallOption) (*servicespb.GenerateSuggestedTargetingInsightsResponse, error)
 	GenerateAudienceOverlapInsights(context.Context, *servicespb.GenerateAudienceOverlapInsightsRequest, ...gax.CallOption) (*servicespb.GenerateAudienceOverlapInsightsResponse, error)
+	GenerateTargetingSuggestionMetrics(context.Context, *servicespb.GenerateTargetingSuggestionMetricsRequest, ...gax.CallOption) (*servicespb.GenerateTargetingSuggestionMetricsResponse, error)
 }
 
 // AudienceInsightsClient is a client for interacting with Google Ads API.
@@ -292,6 +308,25 @@ func (c *AudienceInsightsClient) GenerateAudienceOverlapInsights(ctx context.Con
 	return c.internalClient.GenerateAudienceOverlapInsights(ctx, req, opts...)
 }
 
+// GenerateTargetingSuggestionMetrics returns potential reach metrics for targetable audiences.
+//
+// This method helps answer questions like “How many Men aged 18+ interested
+// in Camping can be reached on YouTube?”
+//
+// List of thrown errors:
+// AudienceInsightsError (at )
+// AuthenticationError (at )
+// AuthorizationError (at )
+// FieldError (at )
+// HeaderError (at )
+// InternalError (at )
+// QuotaError (at )
+// RangeError (at )
+// RequestError (at )
+func (c *AudienceInsightsClient) GenerateTargetingSuggestionMetrics(ctx context.Context, req *servicespb.GenerateTargetingSuggestionMetricsRequest, opts ...gax.CallOption) (*servicespb.GenerateTargetingSuggestionMetricsResponse, error) {
+	return c.internalClient.GenerateTargetingSuggestionMetrics(ctx, req, opts...)
+}
+
 // audienceInsightsGRPCClient is a client for interacting with Google Ads API over gRPC transport.
 //
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
@@ -307,6 +342,8 @@ type audienceInsightsGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewAudienceInsightsClient creates a new audience insights service client based on gRPC.
@@ -335,6 +372,7 @@ func NewAudienceInsightsClient(ctx context.Context, opts ...option.ClientOption)
 		connPool:    connPool,
 		audienceInsightsClient: servicespb.NewAudienceInsightsServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -357,7 +395,7 @@ func (c *audienceInsightsGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *audienceInsightsGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -378,7 +416,7 @@ func (c *audienceInsightsGRPCClient) GenerateInsightsFinderReport(ctx context.Co
 	var resp *servicespb.GenerateInsightsFinderReportResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.audienceInsightsClient.GenerateInsightsFinderReport(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.audienceInsightsClient.GenerateInsightsFinderReport, req, settings.GRPC, c.logger, "GenerateInsightsFinderReport")
 		return err
 	}, opts...)
 	if err != nil {
@@ -396,7 +434,7 @@ func (c *audienceInsightsGRPCClient) ListAudienceInsightsAttributes(ctx context.
 	var resp *servicespb.ListAudienceInsightsAttributesResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.audienceInsightsClient.ListAudienceInsightsAttributes(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.audienceInsightsClient.ListAudienceInsightsAttributes, req, settings.GRPC, c.logger, "ListAudienceInsightsAttributes")
 		return err
 	}, opts...)
 	if err != nil {
@@ -411,7 +449,7 @@ func (c *audienceInsightsGRPCClient) ListInsightsEligibleDates(ctx context.Conte
 	var resp *servicespb.ListInsightsEligibleDatesResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.audienceInsightsClient.ListInsightsEligibleDates(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.audienceInsightsClient.ListInsightsEligibleDates, req, settings.GRPC, c.logger, "ListInsightsEligibleDates")
 		return err
 	}, opts...)
 	if err != nil {
@@ -429,7 +467,7 @@ func (c *audienceInsightsGRPCClient) GenerateAudienceCompositionInsights(ctx con
 	var resp *servicespb.GenerateAudienceCompositionInsightsResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.audienceInsightsClient.GenerateAudienceCompositionInsights(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.audienceInsightsClient.GenerateAudienceCompositionInsights, req, settings.GRPC, c.logger, "GenerateAudienceCompositionInsights")
 		return err
 	}, opts...)
 	if err != nil {
@@ -447,7 +485,7 @@ func (c *audienceInsightsGRPCClient) GenerateSuggestedTargetingInsights(ctx cont
 	var resp *servicespb.GenerateSuggestedTargetingInsightsResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.audienceInsightsClient.GenerateSuggestedTargetingInsights(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.audienceInsightsClient.GenerateSuggestedTargetingInsights, req, settings.GRPC, c.logger, "GenerateSuggestedTargetingInsights")
 		return err
 	}, opts...)
 	if err != nil {
@@ -465,7 +503,25 @@ func (c *audienceInsightsGRPCClient) GenerateAudienceOverlapInsights(ctx context
 	var resp *servicespb.GenerateAudienceOverlapInsightsResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.audienceInsightsClient.GenerateAudienceOverlapInsights(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.audienceInsightsClient.GenerateAudienceOverlapInsights, req, settings.GRPC, c.logger, "GenerateAudienceOverlapInsights")
+		return err
+	}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *audienceInsightsGRPCClient) GenerateTargetingSuggestionMetrics(ctx context.Context, req *servicespb.GenerateTargetingSuggestionMetricsRequest, opts ...gax.CallOption) (*servicespb.GenerateTargetingSuggestionMetricsResponse, error) {
+	hds := []string{"x-goog-request-params", fmt.Sprintf("%s=%v", "customer_id", url.QueryEscape(req.GetCustomerId()))}
+
+	hds = append(c.xGoogHeaders, hds...)
+	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)
+	opts = append((*c.CallOptions).GenerateTargetingSuggestionMetrics[0:len((*c.CallOptions).GenerateTargetingSuggestionMetrics):len((*c.CallOptions).GenerateTargetingSuggestionMetrics)], opts...)
+	var resp *servicespb.GenerateTargetingSuggestionMetricsResponse
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		resp, err = executeRPC(ctx, c.audienceInsightsClient.GenerateTargetingSuggestionMetrics, req, settings.GRPC, c.logger, "GenerateTargetingSuggestionMetrics")
 		return err
 	}, opts...)
 	if err != nil {

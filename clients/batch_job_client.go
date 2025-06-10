@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -261,6 +262,8 @@ type batchJobGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewBatchJobClient creates a new batch job service client based on gRPC.
@@ -287,6 +290,7 @@ func NewBatchJobClient(ctx context.Context, opts ...option.ClientOption) (*Batch
 		connPool:    connPool,
 		batchJobClient: servicespb.NewBatchJobServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -320,7 +324,7 @@ func (c *batchJobGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *batchJobGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -341,7 +345,7 @@ func (c *batchJobGRPCClient) MutateBatchJob(ctx context.Context, req *servicespb
 	var resp *servicespb.MutateBatchJobResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.batchJobClient.MutateBatchJob(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.batchJobClient.MutateBatchJob, req, settings.GRPC, c.logger, "MutateBatchJob")
 		return err
 	}, opts...)
 	if err != nil {
@@ -370,7 +374,7 @@ func (c *batchJobGRPCClient) ListBatchJobResults(ctx context.Context, req *servi
 		}
 		err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 			var err error
-			resp, err = c.batchJobClient.ListBatchJobResults(ctx, req, settings.GRPC...)
+			resp, err = executeRPC(ctx, c.batchJobClient.ListBatchJobResults, req, settings.GRPC, c.logger, "ListBatchJobResults")
 			return err
 		}, opts...)
 		if err != nil {
@@ -405,7 +409,7 @@ func (c *batchJobGRPCClient) RunBatchJob(ctx context.Context, req *servicespb.Ru
 	var resp *longrunningpb.Operation
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.batchJobClient.RunBatchJob(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.batchJobClient.RunBatchJob, req, settings.GRPC, c.logger, "RunBatchJob")
 		return err
 	}, opts...)
 	if err != nil {
@@ -425,7 +429,7 @@ func (c *batchJobGRPCClient) AddBatchJobOperations(ctx context.Context, req *ser
 	var resp *servicespb.AddBatchJobOperationsResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.batchJobClient.AddBatchJobOperations(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.batchJobClient.AddBatchJobOperations, req, settings.GRPC, c.logger, "AddBatchJobOperations")
 		return err
 	}, opts...)
 	if err != nil {

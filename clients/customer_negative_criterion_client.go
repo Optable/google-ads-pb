@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -149,6 +150,8 @@ type customerNegativeCriterionGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewCustomerNegativeCriterionClient creates a new customer negative criterion service client based on gRPC.
@@ -175,6 +178,7 @@ func NewCustomerNegativeCriterionClient(ctx context.Context, opts ...option.Clie
 		connPool:    connPool,
 		customerNegativeCriterionClient: servicespb.NewCustomerNegativeCriterionServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -197,7 +201,7 @@ func (c *customerNegativeCriterionGRPCClient) Connection() *grpc.ClientConn {
 // use by Google-written clients.
 func (c *customerNegativeCriterionGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -218,7 +222,7 @@ func (c *customerNegativeCriterionGRPCClient) MutateCustomerNegativeCriteria(ctx
 	var resp *servicespb.MutateCustomerNegativeCriteriaResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.customerNegativeCriterionClient.MutateCustomerNegativeCriteria(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.customerNegativeCriterionClient.MutateCustomerNegativeCriteria, req, settings.GRPC, c.logger, "MutateCustomerNegativeCriteria")
 		return err
 	}, opts...)
 	if err != nil {

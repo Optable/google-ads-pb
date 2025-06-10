@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"math"
 	"net/url"
 	"time"
@@ -144,6 +145,8 @@ type customerSkAdNetworkConversionValueSchemaGRPCClient struct {
 
 	// The x-goog-* metadata to be sent with each request.
 	xGoogHeaders []string
+
+	logger *slog.Logger
 }
 
 // NewCustomerSkAdNetworkConversionValueSchemaClient creates a new customer sk ad network conversion value schema service client based on gRPC.
@@ -170,6 +173,7 @@ func NewCustomerSkAdNetworkConversionValueSchemaClient(ctx context.Context, opts
 		connPool:    connPool,
 		customerSkAdNetworkConversionValueSchemaClient: servicespb.NewCustomerSkAdNetworkConversionValueSchemaServiceClient(connPool),
 		CallOptions: &client.CallOptions,
+		logger: internaloption.GetLogger(opts),
 
 	}
 	c.setGoogleClientInfo()
@@ -192,7 +196,7 @@ func (c *customerSkAdNetworkConversionValueSchemaGRPCClient) Connection() *grpc.
 // use by Google-written clients.
 func (c *customerSkAdNetworkConversionValueSchemaGRPCClient) setGoogleClientInfo(keyval ...string) {
 	kv := append([]string{"gl-go", gax.GoVersion}, keyval...)
-	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version)
+	kv = append(kv, "gapic", getVersionClient(), "gax", gax.Version, "grpc", grpc.Version, "pb", protoVersion)
 	c.xGoogHeaders = []string{
 		"x-goog-api-client", gax.XGoogHeader(kv...),
 	}
@@ -213,7 +217,7 @@ func (c *customerSkAdNetworkConversionValueSchemaGRPCClient) MutateCustomerSkAdN
 	var resp *servicespb.MutateCustomerSkAdNetworkConversionValueSchemaResponse
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
-		resp, err = c.customerSkAdNetworkConversionValueSchemaClient.MutateCustomerSkAdNetworkConversionValueSchema(ctx, req, settings.GRPC...)
+		resp, err = executeRPC(ctx, c.customerSkAdNetworkConversionValueSchemaClient.MutateCustomerSkAdNetworkConversionValueSchema, req, settings.GRPC, c.logger, "MutateCustomerSkAdNetworkConversionValueSchema")
 		return err
 	}, opts...)
 	if err != nil {
