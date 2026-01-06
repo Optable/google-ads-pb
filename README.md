@@ -21,9 +21,13 @@ Although this project isn't official, we deem it as low-risk due to its maturity
 
 | google-ads-pb         | Google Ads API | Sunset date           |
 | -----------------     | -------------- | --------------------- |
-| v1.3.0                | v20            |                       |
-| Skipped               | v19.1          |                       |
-| Skipped               | v19            |                       |
+| v1.4.0                | v22            | End of October 2026   |
+| Skipped               | v21            | End of August 2026    | 
+| Skipped               | v20.1          | End of June 2026      |
+| v1.3.0                | v20            | End of June 2026      |
+| Skipped               | v19.2          | End of February 2026  |
+| Skipped               | v19.1          | End of February 2026  |
+| Skipped               | v19            | End of February 2026  |
 | Skipped               | v18            | End of September 2025 |
 | Skipped               | v17.1          | End of May 2025       |
 | ~~v1.2.0~~ DEPRECATED | v17            | End of May 2025       |
@@ -34,7 +38,7 @@ Although this project isn't official, we deem it as low-risk due to its maturity
 
 ## Requirements
 
-- Go 1.21.
+- Go 1.23.
 - Familiarize yourself with the [OAuth2 guide](https://developers.google.com/google-ads/api/docs/oauth/overview).
 - If needed, obtain a [developer token](https://developers.google.com/google-ads/api/docs/first-call/dev-token).
 
