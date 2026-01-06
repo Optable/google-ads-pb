@@ -1,4 +1,4 @@
-// Copyright 2025 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -185,7 +185,7 @@ func (c *CampaignDraftClient) MutateCampaignDrafts(ctx context.Context, req *ser
 // is done. Only a done status is returned in the response. See the status
 // in the Campaign Draft resource to determine if the promotion was
 // successful. If the LRO failed, use
-// [CampaignDraftService.ListCampaignDraftAsyncErrors][google.ads.googleads.v20.services.CampaignDraftService.ListCampaignDraftAsyncErrors]
+// CampaignDraftService.ListCampaignDraftAsyncErrors
 // to view the list of error reasons.
 //
 // List of thrown errors:

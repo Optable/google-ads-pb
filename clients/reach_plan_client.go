@@ -1,4 +1,4 @@
-// Copyright 2025 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ type ReachPlanCallOptions struct {
 	ListPlannableProducts []gax.CallOption
 	GenerateReachForecast []gax.CallOption
 	ListPlannableUserLists []gax.CallOption
+	ListPlannableUserInterests []gax.CallOption
 }
 
 func defaultReachPlanGRPCClientOptions() []option.ClientOption {
@@ -127,6 +128,19 @@ func defaultReachPlanCallOptions() *ReachPlanCallOptions {
 				})
 			}),
 		},
+		ListPlannableUserInterests: []gax.CallOption{
+			gax.WithTimeout(14400000 * time.Millisecond),
+			gax.WithRetry(func() gax.Retryer {
+				return gax.OnCodes([]codes.Code{
+					codes.Unavailable,
+					codes.DeadlineExceeded,
+				}, gax.Backoff{
+					Initial:    5000 * time.Millisecond,
+					Max:        60000 * time.Millisecond,
+					Multiplier: 1.30,
+				})
+			}),
+		},
 	}
 }
 
@@ -140,6 +154,7 @@ type internalReachPlanClient interface {
 	ListPlannableProducts(context.Context, *servicespb.ListPlannableProductsRequest, ...gax.CallOption) (*servicespb.ListPlannableProductsResponse, error)
 	GenerateReachForecast(context.Context, *servicespb.GenerateReachForecastRequest, ...gax.CallOption) (*servicespb.GenerateReachForecastResponse, error)
 	ListPlannableUserLists(context.Context, *servicespb.ListPlannableUserListsRequest, ...gax.CallOption) (*servicespb.ListPlannableUserListsResponse, error)
+	ListPlannableUserInterests(context.Context, *servicespb.ListPlannableUserInterestsRequest, ...gax.CallOption) (*servicespb.ListPlannableUserInterestsResponse, error)
 }
 
 // ReachPlanClient is a client for interacting with Google Ads API.
@@ -240,6 +255,13 @@ func (c *ReachPlanClient) GenerateReachForecast(ctx context.Context, req *servic
 }
 
 // ListPlannableUserLists returns the list of plannable user lists with their plannable status.
+// User lists may not be plannable for a number of reasons, including:
+//
+//   They are less than 10 days old.
+//
+//   They have a membership lifespan that is less than 30 days
+//
+//   They have less than 10,000 or more than 700,000 users.
 //
 // List of thrown errors:
 // AuthenticationError (at )
@@ -253,6 +275,25 @@ func (c *ReachPlanClient) GenerateReachForecast(ctx context.Context, req *servic
 // RequestError (at )
 func (c *ReachPlanClient) ListPlannableUserLists(ctx context.Context, req *servicespb.ListPlannableUserListsRequest, opts ...gax.CallOption) (*servicespb.ListPlannableUserListsResponse, error) {
 	return c.internalClient.ListPlannableUserLists(ctx, req, opts...)
+}
+
+// ListPlannableUserInterests returns the list of plannable user interests.
+// A plannable user interest is one that can be targeted in a reach forecast
+// using
+// ReachPlanService.GenerateReachForecast.
+//
+// List of thrown errors:
+// AuthenticationError (at )
+// AuthorizationError (at )
+// FieldError (at )
+// HeaderError (at )
+// InternalError (at )
+// ListOperationError (at )
+// QuotaError (at )
+// RequestError (at )
+// StringLengthError (at )
+func (c *ReachPlanClient) ListPlannableUserInterests(ctx context.Context, req *servicespb.ListPlannableUserInterestsRequest, opts ...gax.CallOption) (*servicespb.ListPlannableUserInterestsResponse, error) {
+	return c.internalClient.ListPlannableUserInterests(ctx, req, opts...)
 }
 
 // reachPlanGRPCClient is a client for interacting with Google Ads API over gRPC transport.
@@ -407,6 +448,21 @@ func (c *reachPlanGRPCClient) ListPlannableUserLists(ctx context.Context, req *s
 	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
 		var err error
 		resp, err = executeRPC(ctx, c.reachPlanClient.ListPlannableUserLists, req, settings.GRPC, c.logger, "ListPlannableUserLists")
+		return err
+	}, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (c *reachPlanGRPCClient) ListPlannableUserInterests(ctx context.Context, req *servicespb.ListPlannableUserInterestsRequest, opts ...gax.CallOption) (*servicespb.ListPlannableUserInterestsResponse, error) {
+	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
+	opts = append((*c.CallOptions).ListPlannableUserInterests[0:len((*c.CallOptions).ListPlannableUserInterests):len((*c.CallOptions).ListPlannableUserInterests)], opts...)
+	var resp *servicespb.ListPlannableUserInterestsResponse
+	err := gax.Invoke(ctx, func(ctx context.Context, settings gax.CallSettings) error {
+		var err error
+		resp, err = executeRPC(ctx, c.reachPlanClient.ListPlannableUserInterests, req, settings.GRPC, c.logger, "ListPlannableUserInterests")
 		return err
 	}, opts...)
 	if err != nil {
