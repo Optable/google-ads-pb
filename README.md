@@ -38,7 +38,7 @@ Although this project isn't official, we deem it as low-risk due to its maturity
 
 ## Requirements
 
-- Go 1.23.
+- Go 1.25.
 - Familiarize yourself with the [OAuth2 guide](https://developers.google.com/google-ads/api/docs/oauth/overview).
 - If needed, obtain a [developer token](https://developers.google.com/google-ads/api/docs/first-call/dev-token).
 
