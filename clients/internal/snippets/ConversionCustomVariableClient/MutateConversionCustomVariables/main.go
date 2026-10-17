@@ -16,6 +16,8 @@
 
 // [START googleads_services_generated_ConversionCustomVariableService_MutateConversionCustomVariables_sync]
 
+//go:build examples
+
 package main
 
 import (

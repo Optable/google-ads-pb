@@ -101,7 +101,7 @@ type KeywordPlanAdGroupKeywordClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *KeywordPlanAdGroupKeywordClient) Close() error {
 	return c.internalClient.Close()
@@ -218,7 +218,7 @@ func (c *keywordPlanAdGroupKeywordGRPCClient) setGoogleClientInfo(keyval ...stri
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *keywordPlanAdGroupKeywordGRPCClient) Close() error {
 	return c.connPool.Close()

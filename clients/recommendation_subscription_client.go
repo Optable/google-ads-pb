@@ -97,7 +97,7 @@ type RecommendationSubscriptionClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *RecommendationSubscriptionClient) Close() error {
 	return c.internalClient.Close()
@@ -130,6 +130,7 @@ func (c *RecommendationSubscriptionClient) Connection() *grpc.ClientConn {
 // MutateError (at )
 // QuotaError (at )
 // RecommendationError (at )
+// RecommendationSubscriptionError (at )
 // RequestError (at )
 // UrlFieldError (at )
 func (c *RecommendationSubscriptionClient) MutateRecommendationSubscription(ctx context.Context, req *servicespb.MutateRecommendationSubscriptionRequest, opts ...gax.CallOption) (*servicespb.MutateRecommendationSubscriptionResponse, error) {
@@ -208,7 +209,7 @@ func (c *recommendationSubscriptionGRPCClient) setGoogleClientInfo(keyval ...str
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *recommendationSubscriptionGRPCClient) Close() error {
 	return c.connPool.Close()

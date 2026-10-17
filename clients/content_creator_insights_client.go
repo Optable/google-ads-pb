@@ -102,7 +102,10 @@ type internalContentCreatorInsightsClient interface {
 //
 // Content Creator Insights Service helps users find information about YouTube
 // Creators and their content and how these creators and their audiences can be
-// reached with Google Ads. Accessible to allowlisted customers only.
+// reached with Google Ads. Refer to the
+// YouTube creator insights
+// guide (at https://developers.google.com/google-ads/api/docs/insights/creator-insights)
+// for more details. Accessible to allowlisted customers only.
 type ContentCreatorInsightsClient struct {
 	// The internal transport-dependent client.
 	internalClient internalContentCreatorInsightsClient
@@ -114,7 +117,7 @@ type ContentCreatorInsightsClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *ContentCreatorInsightsClient) Close() error {
 	return c.internalClient.Close()
@@ -189,7 +192,10 @@ type contentCreatorInsightsGRPCClient struct {
 //
 // Content Creator Insights Service helps users find information about YouTube
 // Creators and their content and how these creators and their audiences can be
-// reached with Google Ads. Accessible to allowlisted customers only.
+// reached with Google Ads. Refer to the
+// YouTube creator insights
+// guide (at https://developers.google.com/google-ads/api/docs/insights/creator-insights)
+// for more details. Accessible to allowlisted customers only.
 func NewContentCreatorInsightsClient(ctx context.Context, opts ...option.ClientOption) (*ContentCreatorInsightsClient, error) {
 	clientOpts := defaultContentCreatorInsightsGRPCClientOptions()
 	if newContentCreatorInsightsClientHook != nil {
@@ -239,7 +245,7 @@ func (c *contentCreatorInsightsGRPCClient) setGoogleClientInfo(keyval ...string)
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *contentCreatorInsightsGRPCClient) Close() error {
 	return c.connPool.Close()

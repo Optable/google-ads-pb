@@ -85,7 +85,7 @@ type internalAutomaticallyCreatedAssetRemovalClient interface {
 // AutomaticallyCreatedAssetRemovalClient is a client for interacting with Google Ads API.
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 //
-// Service to remove automatically created assets.
+// Service to remove text customization (formerly automatically created assets).
 type AutomaticallyCreatedAssetRemovalClient struct {
 	// The internal transport-dependent client.
 	internalClient internalAutomaticallyCreatedAssetRemovalClient
@@ -97,7 +97,7 @@ type AutomaticallyCreatedAssetRemovalClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *AutomaticallyCreatedAssetRemovalClient) Close() error {
 	return c.internalClient.Close()
@@ -118,7 +118,8 @@ func (c *AutomaticallyCreatedAssetRemovalClient) Connection() *grpc.ClientConn {
 	return c.internalClient.Connection()
 }
 
-// RemoveCampaignAutomaticallyCreatedAsset removes automatically created assets from a campaign.
+// RemoveCampaignAutomaticallyCreatedAsset removes text customization (formerly automatically created assets) from a
+// campaign.
 //
 // List of thrown errors:
 // AuthenticationError (at )
@@ -156,7 +157,7 @@ type automaticallyCreatedAssetRemovalGRPCClient struct {
 // NewAutomaticallyCreatedAssetRemovalClient creates a new automatically created asset removal service client based on gRPC.
 // The returned client must be Closed when it is done being used to clean up its underlying connections.
 //
-// Service to remove automatically created assets.
+// Service to remove text customization (formerly automatically created assets).
 func NewAutomaticallyCreatedAssetRemovalClient(ctx context.Context, opts ...option.ClientOption) (*AutomaticallyCreatedAssetRemovalClient, error) {
 	clientOpts := defaultAutomaticallyCreatedAssetRemovalGRPCClientOptions()
 	if newAutomaticallyCreatedAssetRemovalClientHook != nil {
@@ -206,7 +207,7 @@ func (c *automaticallyCreatedAssetRemovalGRPCClient) setGoogleClientInfo(keyval 
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *automaticallyCreatedAssetRemovalGRPCClient) Close() error {
 	return c.connPool.Close()

@@ -128,7 +128,7 @@ type ProductLinkInvitationClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *ProductLinkInvitationClient) Close() error {
 	return c.internalClient.Close()
@@ -237,7 +237,7 @@ func (c *productLinkInvitationGRPCClient) setGoogleClientInfo(keyval ...string) 
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *productLinkInvitationGRPCClient) Close() error {
 	return c.connPool.Close()

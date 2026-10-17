@@ -19,10 +19,12 @@ package clients
 
 import (
 	"context"
+	"iter"
 	"time"
 
 	"cloud.google.com/go/longrunning"
 	gax "github.com/googleapis/gax-go/v2"
+	gaxiter "github.com/googleapis/gax-go/v2/iterator"
 	"google.golang.org/api/iterator"
 	resourcespb "github.com/Optable/google-ads-pb/protogen/resources"
 	servicespb "github.com/Optable/google-ads-pb/protogen/services"
@@ -280,6 +282,12 @@ func (op *ScheduleExperimentOperation) Name() string {
 	return op.lro.Name()
 }
 
+// All returns an iterator. If an error is returned by the iterator, the
+// iterator will stop after that iteration.
+func (it *BatchJobResultIterator) All() iter.Seq2[*servicespb.BatchJobResult, error] {
+	return gaxiter.RangeAdapter(it.Next)
+}
+
 // BatchJobResultIterator manages a stream of *servicespb.BatchJobResult.
 type BatchJobResultIterator struct {
 	items    []*servicespb.BatchJobResult
@@ -325,6 +333,12 @@ func (it *BatchJobResultIterator) takeBuf() interface{} {
 	b := it.items
 	it.items = nil
 	return b
+}
+
+// All returns an iterator. If an error is returned by the iterator, the
+// iterator will stop after that iteration.
+func (it *GenerateKeywordIdeaResultIterator) All() iter.Seq2[*servicespb.GenerateKeywordIdeaResult, error] {
+	return gaxiter.RangeAdapter(it.Next)
 }
 
 // GenerateKeywordIdeaResultIterator manages a stream of *servicespb.GenerateKeywordIdeaResult.
@@ -374,6 +388,12 @@ func (it *GenerateKeywordIdeaResultIterator) takeBuf() interface{} {
 	return b
 }
 
+// All returns an iterator. If an error is returned by the iterator, the
+// iterator will stop after that iteration.
+func (it *GoogleAdsFieldIterator) All() iter.Seq2[*resourcespb.GoogleAdsField, error] {
+	return gaxiter.RangeAdapter(it.Next)
+}
+
 // GoogleAdsFieldIterator manages a stream of *resourcespb.GoogleAdsField.
 type GoogleAdsFieldIterator struct {
 	items    []*resourcespb.GoogleAdsField
@@ -421,6 +441,12 @@ func (it *GoogleAdsFieldIterator) takeBuf() interface{} {
 	return b
 }
 
+// All returns an iterator. If an error is returned by the iterator, the
+// iterator will stop after that iteration.
+func (it *GoogleAdsRowIterator) All() iter.Seq2[*servicespb.GoogleAdsRow, error] {
+	return gaxiter.RangeAdapter(it.Next)
+}
+
 // GoogleAdsRowIterator manages a stream of *servicespb.GoogleAdsRow.
 type GoogleAdsRowIterator struct {
 	items    []*servicespb.GoogleAdsRow
@@ -466,6 +492,12 @@ func (it *GoogleAdsRowIterator) takeBuf() interface{} {
 	b := it.items
 	it.items = nil
 	return b
+}
+
+// All returns an iterator. If an error is returned by the iterator, the
+// iterator will stop after that iteration.
+func (it *StatusIterator) All() iter.Seq2[*statuspb.Status, error] {
+	return gaxiter.RangeAdapter(it.Next)
 }
 
 // StatusIterator manages a stream of *statuspb.Status.

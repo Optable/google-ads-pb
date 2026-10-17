@@ -16,6 +16,8 @@
 
 // [START googleads_services_generated_AdGroupCriterionCustomizerService_MutateAdGroupCriterionCustomizers_sync]
 
+//go:build examples
+
 package main
 
 import (

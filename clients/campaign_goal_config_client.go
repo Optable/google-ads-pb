@@ -97,7 +97,7 @@ type CampaignGoalConfigClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *CampaignGoalConfigClient) Close() error {
 	return c.internalClient.Close()
@@ -128,7 +128,6 @@ func (c *CampaignGoalConfigClient) Connection() *grpc.ClientConn {
 // QuotaError (at )
 // RequestError (at )
 // CampaignGoalConfigError (at )
-// GoalServicesError (at )
 func (c *CampaignGoalConfigClient) MutateCampaignGoalConfigs(ctx context.Context, req *servicespb.MutateCampaignGoalConfigsRequest, opts ...gax.CallOption) (*servicespb.MutateCampaignGoalConfigsResponse, error) {
 	return c.internalClient.MutateCampaignGoalConfigs(ctx, req, opts...)
 }
@@ -205,7 +204,7 @@ func (c *campaignGoalConfigGRPCClient) setGoogleClientInfo(keyval ...string) {
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *campaignGoalConfigGRPCClient) Close() error {
 	return c.connPool.Close()

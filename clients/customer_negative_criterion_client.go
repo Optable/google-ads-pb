@@ -97,7 +97,7 @@ type CustomerNegativeCriterionClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *CustomerNegativeCriterionClient) Close() error {
 	return c.internalClient.Close()
@@ -207,7 +207,7 @@ func (c *customerNegativeCriterionGRPCClient) setGoogleClientInfo(keyval ...stri
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *customerNegativeCriterionGRPCClient) Close() error {
 	return c.connPool.Close()

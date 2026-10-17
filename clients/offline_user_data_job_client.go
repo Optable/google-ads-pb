@@ -29,6 +29,7 @@ import (
 	lroauto "cloud.google.com/go/longrunning/autogen"
 	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	gax "github.com/googleapis/gax-go/v2"
+	trace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/api/option"
 	"google.golang.org/api/option/internaloption"
 	gtransport "google.golang.org/api/transport/grpc"
@@ -136,7 +137,7 @@ type OfflineUserDataJobClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *OfflineUserDataJobClient) Close() error {
 	return c.internalClient.Close()
@@ -303,7 +304,7 @@ func (c *offlineUserDataJobGRPCClient) setGoogleClientInfo(keyval ...string) {
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *offlineUserDataJobGRPCClient) Close() error {
 	return c.connPool.Close()
@@ -360,8 +361,12 @@ func (c *offlineUserDataJobGRPCClient) RunOfflineUserDataJob(ctx context.Context
 	if err != nil {
 		return nil, err
 	}
+	lro := longrunning.InternalNewOperationWithMetadata(*c.LROClient, resp, "*clients.RunOfflineUserDataJobOperation")
+	if gax.IsFeatureEnabled("TRACING") {
+		lro.SetParentSpanContext(trace.SpanContextFromContext(ctx))
+	}
 	return &RunOfflineUserDataJobOperation{
-		lro: longrunning.InternalNewOperation(*c.LROClient, resp),
+		lro: lro,
 	}, nil
 }
 
@@ -369,6 +374,6 @@ func (c *offlineUserDataJobGRPCClient) RunOfflineUserDataJob(ctx context.Context
 // The name must be that of a previously created RunOfflineUserDataJobOperation, possibly from a different process.
 func (c *offlineUserDataJobGRPCClient) RunOfflineUserDataJobOperation(name string) *RunOfflineUserDataJobOperation {
 	return &RunOfflineUserDataJobOperation{
-		lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),
+		lro: longrunning.InternalNewOperationWithMetadata(*c.LROClient, &longrunningpb.Operation{Name: name}, "*clients.RunOfflineUserDataJobOperation"),
 	}
 }

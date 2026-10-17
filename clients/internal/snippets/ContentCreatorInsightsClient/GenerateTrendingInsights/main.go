@@ -16,6 +16,8 @@
 
 // [START googleads_services_generated_ContentCreatorInsightsService_GenerateTrendingInsights_sync]
 
+//go:build examples
+
 package main
 
 import (

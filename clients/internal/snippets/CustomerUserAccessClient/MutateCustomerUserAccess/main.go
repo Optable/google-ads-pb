@@ -16,6 +16,8 @@
 
 // [START googleads_services_generated_CustomerUserAccessService_MutateCustomerUserAccess_sync]
 
+//go:build examples
+
 package main
 
 import (
