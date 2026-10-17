@@ -29,6 +29,7 @@ import (
 	lroauto "cloud.google.com/go/longrunning/autogen"
 	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	gax "github.com/googleapis/gax-go/v2"
+	trace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"google.golang.org/api/option/internaloption"
@@ -153,7 +154,7 @@ type BatchJobClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *BatchJobClient) Close() error {
 	return c.internalClient.Close()
@@ -330,7 +331,7 @@ func (c *batchJobGRPCClient) setGoogleClientInfo(keyval ...string) {
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *batchJobGRPCClient) Close() error {
 	return c.connPool.Close()
@@ -361,7 +362,7 @@ func (c *batchJobGRPCClient) ListBatchJobResults(ctx context.Context, req *servi
 	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)
 	opts = append((*c.CallOptions).ListBatchJobResults[0:len((*c.CallOptions).ListBatchJobResults):len((*c.CallOptions).ListBatchJobResults)], opts...)
 	it := &BatchJobResultIterator{}
-	req = proto.Clone(req).(*servicespb.ListBatchJobResultsRequest)
+	req = proto.CloneOf(req)
 	it.InternalFetch = func(pageSize int, pageToken string) ([]*servicespb.BatchJobResult, string, error) {
 		resp := &servicespb.ListBatchJobResultsResponse{}
 		if pageToken != "" {
@@ -415,8 +416,12 @@ func (c *batchJobGRPCClient) RunBatchJob(ctx context.Context, req *servicespb.Ru
 	if err != nil {
 		return nil, err
 	}
+	lro := longrunning.InternalNewOperationWithMetadata(*c.LROClient, resp, "*clients.RunBatchJobOperation")
+	if gax.IsFeatureEnabled("TRACING") {
+		lro.SetParentSpanContext(trace.SpanContextFromContext(ctx))
+	}
 	return &RunBatchJobOperation{
-		lro: longrunning.InternalNewOperation(*c.LROClient, resp),
+		lro: lro,
 	}, nil
 }
 
@@ -442,6 +447,6 @@ func (c *batchJobGRPCClient) AddBatchJobOperations(ctx context.Context, req *ser
 // The name must be that of a previously created RunBatchJobOperation, possibly from a different process.
 func (c *batchJobGRPCClient) RunBatchJobOperation(name string) *RunBatchJobOperation {
 	return &RunBatchJobOperation{
-		lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),
+		lro: longrunning.InternalNewOperationWithMetadata(*c.LROClient, &longrunningpb.Operation{Name: name}, "*clients.RunBatchJobOperation"),
 	}
 }

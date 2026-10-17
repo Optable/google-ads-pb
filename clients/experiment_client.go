@@ -29,6 +29,7 @@ import (
 	lroauto "cloud.google.com/go/longrunning/autogen"
 	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	gax "github.com/googleapis/gax-go/v2"
+	trace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"google.golang.org/api/option/internaloption"
@@ -185,7 +186,7 @@ type ExperimentClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *ExperimentClient) Close() error {
 	return c.internalClient.Close()
@@ -414,7 +415,7 @@ func (c *experimentGRPCClient) setGoogleClientInfo(keyval ...string) {
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *experimentGRPCClient) Close() error {
 	return c.connPool.Close()
@@ -459,7 +460,7 @@ func (c *experimentGRPCClient) ListExperimentAsyncErrors(ctx context.Context, re
 	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)
 	opts = append((*c.CallOptions).ListExperimentAsyncErrors[0:len((*c.CallOptions).ListExperimentAsyncErrors):len((*c.CallOptions).ListExperimentAsyncErrors)], opts...)
 	it := &StatusIterator{}
-	req = proto.Clone(req).(*servicespb.ListExperimentAsyncErrorsRequest)
+	req = proto.CloneOf(req)
 	it.InternalFetch = func(pageSize int, pageToken string) ([]*statuspb.Status, string, error) {
 		resp := &servicespb.ListExperimentAsyncErrorsResponse{}
 		if pageToken != "" {
@@ -527,8 +528,12 @@ func (c *experimentGRPCClient) ScheduleExperiment(ctx context.Context, req *serv
 	if err != nil {
 		return nil, err
 	}
+	lro := longrunning.InternalNewOperationWithMetadata(*c.LROClient, resp, "*clients.ScheduleExperimentOperation")
+	if gax.IsFeatureEnabled("TRACING") {
+		lro.SetParentSpanContext(trace.SpanContextFromContext(ctx))
+	}
 	return &ScheduleExperimentOperation{
-		lro: longrunning.InternalNewOperation(*c.LROClient, resp),
+		lro: lro,
 	}, nil
 }
 
@@ -547,8 +552,12 @@ func (c *experimentGRPCClient) PromoteExperiment(ctx context.Context, req *servi
 	if err != nil {
 		return nil, err
 	}
+	lro := longrunning.InternalNewOperationWithMetadata(*c.LROClient, resp, "*clients.PromoteExperimentOperation")
+	if gax.IsFeatureEnabled("TRACING") {
+		lro.SetParentSpanContext(trace.SpanContextFromContext(ctx))
+	}
 	return &PromoteExperimentOperation{
-		lro: longrunning.InternalNewOperation(*c.LROClient, resp),
+		lro: lro,
 	}, nil
 }
 
@@ -556,7 +565,7 @@ func (c *experimentGRPCClient) PromoteExperiment(ctx context.Context, req *servi
 // The name must be that of a previously created PromoteExperimentOperation, possibly from a different process.
 func (c *experimentGRPCClient) PromoteExperimentOperation(name string) *PromoteExperimentOperation {
 	return &PromoteExperimentOperation{
-		lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),
+		lro: longrunning.InternalNewOperationWithMetadata(*c.LROClient, &longrunningpb.Operation{Name: name}, "*clients.PromoteExperimentOperation"),
 	}
 }
 
@@ -564,6 +573,6 @@ func (c *experimentGRPCClient) PromoteExperimentOperation(name string) *PromoteE
 // The name must be that of a previously created ScheduleExperimentOperation, possibly from a different process.
 func (c *experimentGRPCClient) ScheduleExperimentOperation(name string) *ScheduleExperimentOperation {
 	return &ScheduleExperimentOperation{
-		lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),
+		lro: longrunning.InternalNewOperationWithMetadata(*c.LROClient, &longrunningpb.Operation{Name: name}, "*clients.ScheduleExperimentOperation"),
 	}
 }

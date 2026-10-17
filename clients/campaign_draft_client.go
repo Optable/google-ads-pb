@@ -29,6 +29,7 @@ import (
 	lroauto "cloud.google.com/go/longrunning/autogen"
 	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	gax "github.com/googleapis/gax-go/v2"
+	trace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"google.golang.org/api/option/internaloption"
@@ -139,7 +140,7 @@ type CampaignDraftClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *CampaignDraftClient) Close() error {
 	return c.internalClient.Close()
@@ -181,10 +182,11 @@ func (c *CampaignDraftClient) MutateCampaignDrafts(ctx context.Context, req *ser
 // PromoteCampaignDraft promotes the changes in a draft back to the base campaign.
 //
 // This method returns a Long Running Operation (LRO) indicating if the
-// Promote is done. Use [Operations.GetOperation] to poll the LRO until it
-// is done. Only a done status is returned in the response. See the status
-// in the Campaign Draft resource to determine if the promotion was
-// successful. If the LRO failed, use
+// Promote is done. Use
+// google.longrunning.Operations.GetOperation
+// to poll the LRO until it is done. Only a done status is returned in the
+// response. See the status in the Campaign Draft resource to determine if the
+// promotion was successful. If the LRO failed, use
 // CampaignDraftService.ListCampaignDraftAsyncErrors
 // to view the list of error reasons.
 //
@@ -309,7 +311,7 @@ func (c *campaignDraftGRPCClient) setGoogleClientInfo(keyval ...string) {
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *campaignDraftGRPCClient) Close() error {
 	return c.connPool.Close()
@@ -348,8 +350,12 @@ func (c *campaignDraftGRPCClient) PromoteCampaignDraft(ctx context.Context, req 
 	if err != nil {
 		return nil, err
 	}
+	lro := longrunning.InternalNewOperationWithMetadata(*c.LROClient, resp, "*clients.PromoteCampaignDraftOperation")
+	if gax.IsFeatureEnabled("TRACING") {
+		lro.SetParentSpanContext(trace.SpanContextFromContext(ctx))
+	}
 	return &PromoteCampaignDraftOperation{
-		lro: longrunning.InternalNewOperation(*c.LROClient, resp),
+		lro: lro,
 	}, nil
 }
 
@@ -360,7 +366,7 @@ func (c *campaignDraftGRPCClient) ListCampaignDraftAsyncErrors(ctx context.Conte
 	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)
 	opts = append((*c.CallOptions).ListCampaignDraftAsyncErrors[0:len((*c.CallOptions).ListCampaignDraftAsyncErrors):len((*c.CallOptions).ListCampaignDraftAsyncErrors)], opts...)
 	it := &StatusIterator{}
-	req = proto.Clone(req).(*servicespb.ListCampaignDraftAsyncErrorsRequest)
+	req = proto.CloneOf(req)
 	it.InternalFetch = func(pageSize int, pageToken string) ([]*statuspb.Status, string, error) {
 		resp := &servicespb.ListCampaignDraftAsyncErrorsResponse{}
 		if pageToken != "" {
@@ -403,6 +409,6 @@ func (c *campaignDraftGRPCClient) ListCampaignDraftAsyncErrors(ctx context.Conte
 // The name must be that of a previously created PromoteCampaignDraftOperation, possibly from a different process.
 func (c *campaignDraftGRPCClient) PromoteCampaignDraftOperation(name string) *PromoteCampaignDraftOperation {
 	return &PromoteCampaignDraftOperation{
-		lro: longrunning.InternalNewOperation(*c.LROClient, &longrunningpb.Operation{Name: name}),
+		lro: longrunning.InternalNewOperationWithMetadata(*c.LROClient, &longrunningpb.Operation{Name: name}, "*clients.PromoteCampaignDraftOperation"),
 	}
 }

@@ -85,7 +85,11 @@ type internalCustomerLabelClient interface {
 // CustomerLabelClient is a client for interacting with Google Ads API.
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 //
-// Service to manage labels on customers.
+// Service to manage labels on Google Ads customers.
+//
+// This service is commonly used by manager accounts to apply their own labels
+// to their client accounts. The label entity must exist under the manager
+// account.
 type CustomerLabelClient struct {
 	// The internal transport-dependent client.
 	internalClient internalCustomerLabelClient
@@ -97,7 +101,7 @@ type CustomerLabelClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *CustomerLabelClient) Close() error {
 	return c.internalClient.Close()
@@ -157,7 +161,11 @@ type customerLabelGRPCClient struct {
 // NewCustomerLabelClient creates a new customer label service client based on gRPC.
 // The returned client must be Closed when it is done being used to clean up its underlying connections.
 //
-// Service to manage labels on customers.
+// Service to manage labels on Google Ads customers.
+//
+// This service is commonly used by manager accounts to apply their own labels
+// to their client accounts. The label entity must exist under the manager
+// account.
 func NewCustomerLabelClient(ctx context.Context, opts ...option.ClientOption) (*CustomerLabelClient, error) {
 	clientOpts := defaultCustomerLabelGRPCClientOptions()
 	if newCustomerLabelClientHook != nil {
@@ -207,7 +215,7 @@ func (c *customerLabelGRPCClient) setGoogleClientInfo(keyval ...string) {
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *customerLabelGRPCClient) Close() error {
 	return c.connPool.Close()

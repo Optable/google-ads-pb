@@ -112,7 +112,7 @@ type AdGroupAdClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *AdGroupAdClient) Close() error {
 	return c.internalClient.Close()
@@ -183,7 +183,8 @@ func (c *AdGroupAdClient) MutateAdGroupAds(ctx context.Context, req *servicespb.
 	return c.internalClient.MutateAdGroupAds(ctx, req, opts...)
 }
 
-// RemoveAutomaticallyCreatedAssets remove automatically created assets from an ad.
+// RemoveAutomaticallyCreatedAssets remove text customization (formerly automatically created assets) from an
+// ad.
 //
 // List of thrown errors:
 // AdError (at )
@@ -271,7 +272,7 @@ func (c *adGroupAdGRPCClient) setGoogleClientInfo(keyval ...string) {
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *adGroupAdGRPCClient) Close() error {
 	return c.connPool.Close()

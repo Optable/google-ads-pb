@@ -112,7 +112,7 @@ type AssetGenerationClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *AssetGenerationClient) Close() error {
 	return c.internalClient.Close()
@@ -235,7 +235,7 @@ func (c *assetGenerationGRPCClient) setGoogleClientInfo(keyval ...string) {
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *assetGenerationGRPCClient) Close() error {
 	return c.connPool.Close()

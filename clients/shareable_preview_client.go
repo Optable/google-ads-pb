@@ -86,6 +86,13 @@ type internalShareablePreviewClient interface {
 // Methods, except Close, may be called concurrently. However, fields must not be modified concurrently with method calls.
 //
 // Service to generate Shareable Previews.
+//
+// Only Performance Max asset groups and certain YouTube video/audio ad formats
+// are supported. Other ad types, such as Responsive Search Ads or Responsive
+// Display Ads, are not supported and return an UNSUPPORTED_AD_TYPE error.
+//
+// The generated preview URLs cannot be embedded in an iframe because the
+// response headers include X-Frame-Options: deny.
 type ShareablePreviewClient struct {
 	// The internal transport-dependent client.
 	internalClient internalShareablePreviewClient
@@ -97,7 +104,7 @@ type ShareablePreviewClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *ShareablePreviewClient) Close() error {
 	return c.internalClient.Close()
@@ -146,6 +153,13 @@ type shareablePreviewGRPCClient struct {
 // The returned client must be Closed when it is done being used to clean up its underlying connections.
 //
 // Service to generate Shareable Previews.
+//
+// Only Performance Max asset groups and certain YouTube video/audio ad formats
+// are supported. Other ad types, such as Responsive Search Ads or Responsive
+// Display Ads, are not supported and return an UNSUPPORTED_AD_TYPE error.
+//
+// The generated preview URLs cannot be embedded in an iframe because the
+// response headers include X-Frame-Options: deny.
 func NewShareablePreviewClient(ctx context.Context, opts ...option.ClientOption) (*ShareablePreviewClient, error) {
 	clientOpts := defaultShareablePreviewGRPCClientOptions()
 	if newShareablePreviewClientHook != nil {
@@ -195,7 +209,7 @@ func (c *shareablePreviewGRPCClient) setGoogleClientInfo(keyval ...string) {
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *shareablePreviewGRPCClient) Close() error {
 	return c.connPool.Close()

@@ -144,7 +144,7 @@ type KeywordPlanIdeaClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *KeywordPlanIdeaClient) Close() error {
 	return c.internalClient.Close()
@@ -296,7 +296,7 @@ func (c *keywordPlanIdeaGRPCClient) setGoogleClientInfo(keyval ...string) {
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *keywordPlanIdeaGRPCClient) Close() error {
 	return c.connPool.Close()
@@ -309,7 +309,7 @@ func (c *keywordPlanIdeaGRPCClient) GenerateKeywordIdeas(ctx context.Context, re
 	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, hds...)
 	opts = append((*c.CallOptions).GenerateKeywordIdeas[0:len((*c.CallOptions).GenerateKeywordIdeas):len((*c.CallOptions).GenerateKeywordIdeas)], opts...)
 	it := &GenerateKeywordIdeaResultIterator{}
-	req = proto.Clone(req).(*servicespb.GenerateKeywordIdeasRequest)
+	req = proto.CloneOf(req)
 	it.InternalFetch = func(pageSize int, pageToken string) ([]*servicespb.GenerateKeywordIdeaResult, string, error) {
 		resp := &servicespb.GenerateKeywordIdeaResponse{}
 		if pageToken != "" {

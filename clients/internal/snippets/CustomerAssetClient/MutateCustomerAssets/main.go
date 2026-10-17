@@ -16,6 +16,8 @@
 
 // [START googleads_services_generated_CustomerAssetService_MutateCustomerAssets_sync]
 
+//go:build examples
+
 package main
 
 import (

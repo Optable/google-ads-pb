@@ -97,7 +97,7 @@ type AudienceClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *AudienceClient) Close() error {
 	return c.internalClient.Close()
@@ -198,7 +198,7 @@ func (c *audienceGRPCClient) setGoogleClientInfo(keyval ...string) {
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *audienceGRPCClient) Close() error {
 	return c.connPool.Close()

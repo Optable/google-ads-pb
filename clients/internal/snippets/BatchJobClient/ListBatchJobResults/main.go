@@ -16,6 +16,8 @@
 
 // [START googleads_services_generated_BatchJobService_ListBatchJobResults_sync]
 
+//go:build examples
+
 package main
 
 import (

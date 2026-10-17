@@ -115,7 +115,7 @@ type GoogleAdsFieldClient struct {
 
 // Wrapper methods routed to the internal client.
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *GoogleAdsFieldClient) Close() error {
 	return c.internalClient.Close()
@@ -235,7 +235,7 @@ func (c *googleAdsFieldGRPCClient) setGoogleClientInfo(keyval ...string) {
 	}
 }
 
-// Close closes the connection to the API service. The user should invoke this when
+// Close closes the connection to the API service. **Always** call Close() when
 // the client is no longer required.
 func (c *googleAdsFieldGRPCClient) Close() error {
 	return c.connPool.Close()
@@ -263,7 +263,7 @@ func (c *googleAdsFieldGRPCClient) SearchGoogleAdsFields(ctx context.Context, re
 	ctx = gax.InsertMetadataIntoOutgoingContext(ctx, c.xGoogHeaders...)
 	opts = append((*c.CallOptions).SearchGoogleAdsFields[0:len((*c.CallOptions).SearchGoogleAdsFields):len((*c.CallOptions).SearchGoogleAdsFields)], opts...)
 	it := &GoogleAdsFieldIterator{}
-	req = proto.Clone(req).(*servicespb.SearchGoogleAdsFieldsRequest)
+	req = proto.CloneOf(req)
 	it.InternalFetch = func(pageSize int, pageToken string) ([]*resourcespb.GoogleAdsField, string, error) {
 		resp := &servicespb.SearchGoogleAdsFieldsResponse{}
 		if pageToken != "" {
